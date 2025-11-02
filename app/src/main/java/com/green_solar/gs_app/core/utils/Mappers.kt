@@ -20,7 +20,7 @@ fun UserDto.toDomain(): User {
 
     return User(
         id = id,
-        username = safeUsername,
+        username = safeUsername?: "",
         email = email,
         firstName = fn,
         lastName = ln,

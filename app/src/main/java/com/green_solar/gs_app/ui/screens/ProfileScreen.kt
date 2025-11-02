@@ -38,8 +38,6 @@ fun ProfileScreen(
             )
         }
     ) { padding ->
-
-        // Contenedor principal
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -52,26 +50,25 @@ fun ProfileScreen(
                     onRetry = { viewModel.retry() }
                 )
                 state.user != null -> {
+                    // 🔹 El contenido del perfil + botón
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.SpaceBetween, // 👈 deja el botón visible
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ContentView(user = state.user!!)
-
-                        // 👇 Aquí el botón de logout, dentro del mismo flujo de UI
+                        ContentView( user = state.user!!,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
                         Button(
                             onClick = {
-                                // Opción A: desde ViewModel (si tiene repo con session)
                                 viewModel.logout()
-
-                                // Opción B: directo, más simple
-                                // SessionManager(ctx).clear()
-
                                 onLogout()
-                            }
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Cerrar sesión")
                         }
@@ -82,6 +79,7 @@ fun ProfileScreen(
         }
     }
 }
+
 
 
 
@@ -109,25 +107,21 @@ private fun ErrorView(message: String, onRetry: () -> Unit) {
     }
 }
 
+// Ajusta ContentView para aceptar modifier y NO usar fillMaxSize()
 @Composable
-private fun ContentView(user: User) {
+private fun ContentView(user: User, modifier: Modifier = Modifier) {
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = modifier,              // <- usa el modifier que recibe
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AvatarImage(url = user.imageUrl)
-
-        Text(
-            text = "${user.firstName} ${user.lastName}",
-            style = MaterialTheme.typography.titleLarge
-        )
+        Text(text = "${user.firstName} ${user.lastName}", style = MaterialTheme.typography.titleLarge)
         Text(text = "@${user.username}", style = MaterialTheme.typography.bodyMedium)
         Text(text = user.email, style = MaterialTheme.typography.bodyMedium)
     }
 }
+
 
 @Composable
 private fun AvatarImage(url: String?) {
