@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GS_App"
+rootProject.name = "Gs"
 include(":app")
  
