@@ -11,16 +11,10 @@ import kotlinx.coroutines.launch
 
 
 
-import com.green_solar.gs_app.domain.model.User
 import com.green_solar.gs_app.domain.repository.AuthRepository
 
 import retrofit2.HttpException
 
-data class ProfileUiState(
-    val isLoading: Boolean = false,
-    val user: User? = null,
-    val error: String? = null
-)
 
 class ProfileViewModel(
     private val userRepo: UserRepository,
