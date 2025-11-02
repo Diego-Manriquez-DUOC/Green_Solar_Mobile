@@ -15,18 +15,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.repository.AuthRepositoryImpl
-import com.green_solar.gs_app.data.repository.UserRepositoryImpl
+import com.green_solar.gs_app.ui.components.auth.SignupVMFactory
+import com.green_solar.gs_app.ui.components.auth.SignupViewModel
 import com.green_solar.gs_app.ui.components.login.LoginVMFactory
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
-import com.green_solar.gs_app.ui.components.profile.ProfileVMFactory
-import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
 import com.green_solar.gs_app.ui.screens.LoginScreen
-import com.green_solar.gs_app.ui.screens.ProfileScreen
+import com.green_solar.gs_app.ui.screens.SignupScreen
 
 object Routes {
     const val Splash = "splash"
     const val Login = "login"
     const val Profile = "profile"
+    const val SignUp = "signup"
 }
 
 @Composable
@@ -66,31 +66,41 @@ fun AppNav() {
                     nav.navigate(Routes.Profile) {
                         popUpTo(Routes.Login) { inclusive = true }
                     }
-                }
+                },
+                onRegisterClick = { nav.navigate(Routes.SignUp) }
             )
         }
 
-// 3) Profile
+        // 3) Profile
         composable(Routes.Profile) {
-            val ctx = LocalContext.current
+            val ctxLocal = LocalContext.current
+            val userRepo = remember(ctxLocal) { com.green_solar.gs_app.data.repository.UserRepositoryImpl(ctxLocal) }
+            val authRepo = remember(ctxLocal) { com.green_solar.gs_app.data.repository.AuthRepositoryImpl(ctxLocal) }
 
-            // Repos
-            val userRepo = remember(ctx) { com.green_solar.gs_app.data.repository.UserRepositoryImpl(ctx) }
-            val authRepo = remember(ctx) { com.green_solar.gs_app.data.repository.AuthRepositoryImpl(ctx) }
-
-            // ViewModel con ambos repos
             val vm: com.green_solar.gs_app.ui.components.profile.ProfileViewModel =
-                androidx.lifecycle.viewmodel.compose.viewModel(
-                    factory = com.green_solar.gs_app.ui.components.profile.ProfileVMFactory(userRepo, authRepo)
-                )
+                viewModel(factory = com.green_solar.gs_app.ui.components.profile.ProfileVMFactory(userRepo, authRepo))
 
             com.green_solar.gs_app.ui.screens.ProfileScreen(
                 viewModel = vm,
                 onLogout = {
-                    // Navega al Login y limpia el backstack
                     nav.navigate(Routes.Login) {
                         popUpTo(Routes.Profile) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        // 4) SignUp
+        composable(Routes.SignUp) {
+            val ctxLocal = LocalContext.current
+            val repo = remember(ctxLocal) { AuthRepositoryImpl(ctxLocal) }
+            val vm: SignupViewModel = viewModel(factory = SignupVMFactory(repo))
+
+            SignupScreen(
+                viewModel = vm,
+                onRegistered = {
+                    nav.popBackStack(Routes.SignUp, inclusive = true)
+                    nav.navigate(Routes.Login)
                 }
             )
         }

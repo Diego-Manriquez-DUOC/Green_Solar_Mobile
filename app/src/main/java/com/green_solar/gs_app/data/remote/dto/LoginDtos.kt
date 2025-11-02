@@ -7,8 +7,13 @@ data class LoginRequest(val email: String, val password: String)
 
 data class SignupRequest(val name: String, val email: String, val password: String)
 
-// Lo que devuelve Xano:
+// Lo que devuelve el api en login
 data class LoginResponseDto(
     val authToken: String,
-    val user_id: Int?    // Xano devuelve user_id, no el objeto user
+    val user_id: Int?    // el api devuelve user_id, no el objeto user asi que lo agregamos
+)
+
+data class SignupResponseDto(
+    val authToken: String,
+    val user_id: Int
 )

@@ -27,7 +27,7 @@ fun ProfileScreen(
     onLogout: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val ctx = LocalContext.current
+
 
     LaunchedEffect(Unit) { viewModel.loadMe() }
 
@@ -55,7 +55,7 @@ fun ProfileScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(24.dp),
-                        verticalArrangement = Arrangement.SpaceBetween, // 👈 deja el botón visible
+                        verticalArrangement = Arrangement.SpaceBetween, // deja el botón visible
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         ContentView( user = state.user!!,
