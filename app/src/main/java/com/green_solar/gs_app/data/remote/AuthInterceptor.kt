@@ -5,14 +5,15 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class AuthInterceptor(private val session : SessionManager): Interceptor {
+class AuthInterceptor(private val session: SessionManager) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-
-        val req = chain.request()
+        val original = chain.request()
         val token = runBlocking { session.getToken() }
-        val authenticated = if (!token.isNullOrEmpty())
-            req.newBuilder().header("Authorization", "Bearer $token").build()
-        else req
-        return chain.proceed(authenticated)
+        val req = if (!token.isNullOrBlank()) {
+            original.newBuilder()
+                .header("Authorization", "Bearer $token")
+                .build()
+        } else original
+        return chain.proceed(req)
     }
 }
