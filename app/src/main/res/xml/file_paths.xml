@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <cache-path name="shared_images" path="images/" />
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Esto le da permiso al FileProvider para compartir archivos que estén
+        en el subdirectorio 'images' del directorio de caché de la app.
+        La ruta que creamos en ProfileScreen ("temp_camera_image...") coincide con esto.
+    -->
+    <cache-path name="shared_images" path="."/>
 </paths>

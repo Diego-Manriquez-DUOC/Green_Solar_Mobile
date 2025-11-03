@@ -1,11 +1,13 @@
 package com.green_solar.gs_app.ui.navigation
 
+import android.app.Application
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -15,20 +17,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.repository.AuthRepositoryImpl
+import com.green_solar.gs_app.data.repository.UserRepositoryImpl
 import com.green_solar.gs_app.ui.components.auth.SignupVMFactory
 import com.green_solar.gs_app.ui.components.auth.SignupViewModel
 import com.green_solar.gs_app.ui.components.login.LoginVMFactory
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
-import com.green_solar.gs_app.ui.screens.LoginScreen
-import com.green_solar.gs_app.ui.screens.MainScreen
-import com.green_solar.gs_app.ui.screens.SignupScreen
+import com.green_solar.gs_app.ui.components.profile.ProfileVMFactory
+import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
+import com.green_solar.gs_app.ui.screens.*
+import kotlinx.coroutines.launch
 
 object Routes {
     const val Splash = "splash"
     const val Login = "login"
     const val Profile = "profile"
     const val SignUp = "signup"
-
     const val Main = "main"
 }
 
@@ -36,82 +39,67 @@ object Routes {
 fun AppNav() {
     val nav = rememberNavController()
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     NavHost(navController = nav, startDestination = Routes.Splash) {
 
-        // 1) Splash: decide si hay token guardado
         composable(Routes.Splash) {
             LaunchedEffect(Unit) {
                 val hasToken = SessionManager(ctx).hasToken()
-                if (hasToken) {
-                    nav.navigate(Routes.Main) { popUpTo(Routes.Splash) { inclusive = true } }
-                } else {
-                    nav.navigate(Routes.Login) { popUpTo(Routes.Splash) { inclusive = true } }
-                }
+                val dest = if (hasToken) Routes.Main else Routes.Login
+                nav.navigate(dest) { popUpTo(Routes.Splash) { inclusive = true } }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
 
-        // 2) Login
         composable(Routes.Login) {
             val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
-            val vm: LoginViewModel = viewModel(factory = LoginVMFactory(authRepo))
+            val factory = LoginVMFactory(authRepo)
+            val vm: LoginViewModel = viewModel(factory = factory)
 
             LoginScreen(
                 vm = vm,
-                onLoggedIn = {
-                    nav.navigate(Routes.Main) {
-                        popUpTo(Routes.Login) { inclusive = true }
-                    }
-                },
+                onLoggedIn = { nav.navigate(Routes.Main) { popUpTo(Routes.Login) { inclusive = true } } },
                 onRegisterClick = { nav.navigate(Routes.SignUp) }
             )
         }
 
-        // 3) Profile
-        composable(Routes.Profile) {
-            val ctxLocal = LocalContext.current
-            val userRepo = remember(ctxLocal) { com.green_solar.gs_app.data.repository.UserRepositoryImpl(ctxLocal) }
-            val authRepo = remember(ctxLocal) { com.green_solar.gs_app.data.repository.AuthRepositoryImpl(ctxLocal) }
-
-            val vm: com.green_solar.gs_app.ui.components.profile.ProfileViewModel =
-                viewModel(factory = com.green_solar.gs_app.ui.components.profile.ProfileVMFactory(userRepo, authRepo))
-
-            com.green_solar.gs_app.ui.screens.ProfileScreen(
-                viewModel = vm,
-                onLogout = {
-                    nav.navigate(Routes.Login) {
-                        popUpTo(Routes.Profile) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        // 4) SignUp
         composable(Routes.SignUp) {
-            val ctxLocal = LocalContext.current
-            val repo = remember(ctxLocal) { AuthRepositoryImpl(ctxLocal) }
-            val vm: SignupViewModel = viewModel(factory = SignupVMFactory(repo))
+            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            val factory = SignupVMFactory(authRepo)
+            val vm: SignupViewModel = viewModel(factory = factory)
 
             SignupScreen(
                 viewModel = vm,
-                onRegistered = {
-                    nav.popBackStack(Routes.SignUp, inclusive = true)
-                    nav.navigate(Routes.Login)
+                onRegistered = { nav.popBackStack() }
+            )
+        }
+
+        composable(Routes.Profile) {
+            val app = ctx.applicationContext as Application
+            val userRepo = remember(ctx) { UserRepositoryImpl(ctx) }
+            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            val factory = ProfileVMFactory(app, userRepo, authRepo)
+            val vm: ProfileViewModel = viewModel(factory = factory)
+
+            ProfileScreen(
+                viewModel = vm,
+                onLogout = {
+                    vm.logout()
+                    nav.navigate(Routes.Login) { popUpTo(nav.graph.startDestinationId) { inclusive = true } }
                 }
             )
         }
-        // 5) Main
+
         composable(Routes.Main) {
             MainScreen(
                 nav = nav,
                 onLogout = {
-                    // Limpia sesión y vuelve a Login
-                    SessionManager(ctx)
-                    nav.navigate(Routes.Login) {
-                        popUpTo(Routes.Main) { inclusive = true }
+                    scope.launch {
+                        SessionManager(ctx).clear()
+                        nav.navigate(Routes.Login) { popUpTo(nav.graph.startDestinationId) { inclusive = true } }
                     }
                 }
             )

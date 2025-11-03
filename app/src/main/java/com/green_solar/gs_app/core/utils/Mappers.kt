@@ -4,8 +4,8 @@ import com.green_solar.gs_app.data.remote.dto.UserDto
 import com.green_solar.gs_app.domain.model.User
 
 fun UserDto.toDomain(): User {
-    // Si solo viene "name", lo parto en nombre/apellido
-    val (fn, ln) = when {
+    // 1. Lógica para derivar el nombre y apellido.
+    val (finalFirstName, finalLastName) = when {
         !name.isNullOrBlank() -> {
             val parts = name.trim().split(" ", limit = 2)
             val f = parts.getOrNull(0) ?: ""
@@ -15,15 +15,21 @@ fun UserDto.toDomain(): User {
         else -> (firstName ?: "") to (lastName ?: "")
     }
 
-    // Si no hay username, uso el email antes del @ como fallback
-    val safeUsername = username ?: email.substringBefore('@')
+    // 2. Lógica para el nombre de usuario (segura contra nulos).
+    val safeUsername = username?.takeIf { it.isNotBlank() }
+        ?: email?.substringBefore('@')?.takeIf { it.isNotBlank() }
+        ?: "usuario"
 
+    // 3. Lógica para la imagen de perfil (segura contra nulos).
+    val safeImageUrl = avatarUrl?.takeIf { it.isNotBlank() } ?: ""
+
+    // 4. Construye el objeto User, asegurando que no haya nulos.
     return User(
-        id = id,
-        username = safeUsername?: "",
-        email = email,
-        firstName = fn,
-        lastName = ln,
-        imageUrl = avatarUrl
+        id = id ?: "",
+        username = safeUsername,
+        email = email ?: "",
+        firstName = finalFirstName,
+        lastName = finalLastName,
+        imageUrl = safeImageUrl
     )
 }

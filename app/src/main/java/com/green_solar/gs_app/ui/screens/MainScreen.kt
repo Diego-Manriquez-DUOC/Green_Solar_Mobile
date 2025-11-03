@@ -1,10 +1,15 @@
 package com.green_solar.gs_app.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -16,7 +21,7 @@ import com.green_solar.gs_app.ui.theme.GsTheme
 @Composable
 fun MainScreen(
     nav: NavHostController,
-    onLogout: () -> Unit
+    onLogout: () -> Unit // <-- ¡CORREGIDO! Ya no es @Composable
 ) {
     Scaffold(
         topBar = {
@@ -27,34 +32,84 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 "¡Bienvenido!",
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                "¿Qué quieres hacer hoy?",
-                style = MaterialTheme.typography.bodyLarge
+                "Gestiona tus proyectos de energía solar de forma simple.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(32.dp))
 
-            Button(
+            // --- Tarjetas de Navegación ---
+            NavCard(
+                title = "Mis Proyectos",
+                subtitle = "Visualiza tus instalaciones y su estado.",
+                onClick = { /* TODO: nav.navigate(Routes.Projects) */ },
+                icon = { Icon(Icons.Default.WbSunny, null, tint = MaterialTheme.colorScheme.primary) }
+            )
+
+            NavCard(
+                title = "Monitoreo y Ahorro",
+                subtitle = "Revisa tu consumo y ahorro energético.",
+                onClick = { /* TODO: nav.navigate(Routes.Monitoring) */ },
+                icon = { Icon(Icons.Default.BarChart, null, tint = MaterialTheme.colorScheme.primary) }
+            )
+
+            NavCard(
+                title = "Mi Perfil",
+                subtitle = "Administra tus datos y configuración.",
                 onClick = { nav.navigate(Routes.Profile) },
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Ver mi perfil") }
+                icon = { Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary) }
+            )
+
+            Spacer(Modifier.weight(1f)) // Empuja el botón de logout hacia abajo
 
             OutlinedButton(
-                onClick = onLogout,
+                onClick = onLogout, // Ahora coincide perfectamente
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Cerrar sesión") }
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NavCard(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    icon: @Composable () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.size(40.dp)) { icon() }
+            Spacer(Modifier.width(16.dp))
+            Column {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable

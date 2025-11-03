@@ -14,10 +14,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Gs">
-        <!-- FileProvider para tomar fotos con la cámara -->
+
+        <!-- ✅ PASO 2: Declarar el FileProvider con la authority CORRECTA -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:authorities="${applicationId}.provider" 
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

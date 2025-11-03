@@ -52,6 +52,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation("androidx.compose.material:material-icons-extended") // <-- ¡AÑADIDA!
 
     // --- Corrutinas (para ViewModel/Repository) ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -67,8 +68,8 @@ dependencies {
 
     // --- Coil (carga de imágenes / avatar / cámara-galería) ---
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.foundation.layout)
+
+    // --- NAVEGACIÓN ---
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
@@ -80,4 +81,12 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// SOLUCIÓN DEFINITIVA: Forzar una única versión de la librería de navegación
+// para resolver el conflicto que causa el crash.
+configurations.all {
+    resolutionStrategy {
+        force("androidx.navigation:navigation-compose:2.7.7")
+    }
 }

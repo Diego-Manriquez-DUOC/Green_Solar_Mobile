@@ -7,15 +7,17 @@ import com.green_solar.gs_app.data.remote.RetrofitClient
 import com.green_solar.gs_app.domain.model.User
 import com.green_solar.gs_app.domain.repository.UserRepository
 
-class UserRepositoryImpl(context: Context) : UserRepository {
-    private val api = RetrofitClient.create(context).create(ApiService::class.java)
+class UserRepositoryImpl(ctx: Context) : UserRepository {
+    private val api = RetrofitClient.create(ctx).create(ApiService::class.java)
 
-    override suspend fun getCurrentUser(): Result<User> = runCatching {
-        api.getCurrentUser().toDomain()
-    }
+    override suspend fun getCurrentUser(): Result<User> =
+        runCatching {
+            val dto = api.getCurrentUser()   // puede lanzar HttpException/IOE
+            dto.toDomain()                   // mapea a tu modelo User
+        }
 
     override suspend fun getUserById(id: Int): Result<User> = runCatching {
-        api.getCurrentUser().toDomain()
+        api.getUserById(id).toDomain()
     }
 
 }

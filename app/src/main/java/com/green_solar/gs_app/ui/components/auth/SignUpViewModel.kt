@@ -1,5 +1,6 @@
 package com.green_solar.gs_app.ui.components.auth
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.green_solar.gs_app.domain.repository.AuthRepository
@@ -15,34 +16,49 @@ class SignupViewModel(
     private val _ui = MutableStateFlow(SignupUiState())
     val ui: StateFlow<SignupUiState> = _ui
 
-    fun onName(v: String) = _ui.update { it.copy(name = v, error = null) }
-    fun onEmail(v: String) = _ui.update { it.copy(email = v, error = null) }
-    fun onPass(v: String) = _ui.update { it.copy(password = v, error = null) }
-    fun onConfirm(v: String) = _ui.update { it.copy(confirm = v, error = null) }
+    fun onName(v: String)    = _ui.update { it.copy(name = v,    nameError = null, generalError = null) }
+    fun onEmail(v: String)   = _ui.update { it.copy(email = v,   emailError = null, generalError = null) }
+    fun onPass(v: String)    = _ui.update { it.copy(password = v, passwordError = null, generalError = null) }
+    fun onConfirm(v: String) = _ui.update { it.copy(confirm = v, confirmError = null, generalError = null) }
 
     fun submit() {
-        val s = _ui.value
-        // Validaciones básicas
-        if (s.name.isBlank()) return fail("Ingresa tu nombre")
-        if (!s.email.contains("@")) return fail("Email inválido")
-        if (s.password.length < 6) return fail("Mínimo 6 caracteres")
-        if (s.password != s.confirm) return fail("Las contraseñas no coinciden")
+        // 1) validación local
+        if (!validate()) return
 
+        // 2) llamada al repo
         viewModelScope.launch {
-            _ui.update { it.copy(isLoading = true, error = null) }
+            _ui.update { it.copy(isLoading = true, generalError = null) }
+            val s = _ui.value
 
-            authRepo.signup(s.name, s.email, s.password)
+            // 👇 Ajusta esta firma si tu AuthRepository devuelve otro tipo
+            // Recomendado: Result<Unit> o Result<LoginResponse>
+            authRepo.signup(name = s.name, email = s.email, password = s.password)
                 .onSuccess {
                     _ui.update { it.copy(isLoading = false, done = true) }
                 }
                 .onFailure { e ->
-                    fail(e.message ?: "Error desconocido al registrar")
+                    _ui.update { it.copy(isLoading = false, generalError = e.message ?: "Error desconocido") }
                 }
         }
     }
 
-    private fun fail(msg: String) {
-        _ui.update { it.copy(isLoading = false, error = msg) }
+    private fun validate(): Boolean {
+        val s = _ui.value
+
+        val nameError = if (s.name.isBlank()) "Ingresa tu nombre" else null
+        val emailError = if (!Patterns.EMAIL_ADDRESS.matcher(s.email).matches()) "Email inválido" else null
+        val passwordError = if (s.password.length < 6 || !s.password.any { it.isDigit() }) "Mínimo 6 caracteres y 1 número" else null
+        val confirmError = if (s.password != s.confirm) "Las contraseñas no coinciden" else null
+
+        _ui.update {
+            it.copy(
+                nameError = nameError,
+                emailError = emailError,
+                passwordError = passwordError,
+                confirmError = confirmError
+            )
+        }
+        return nameError == null && emailError == null && passwordError == null && confirmError == null
     }
 
     fun resetDone() {
