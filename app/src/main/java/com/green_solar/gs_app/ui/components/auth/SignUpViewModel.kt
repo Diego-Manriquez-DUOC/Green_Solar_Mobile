@@ -8,13 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// Placeholder de DTO (luego lo cambias por tu real)
-data class SignupRequest(
-    val name: String,
-    val email: String,
-    val password: String
-)
-
 class SignupViewModel(
     private val authRepo: AuthRepository
 ) : ViewModel() {
@@ -37,16 +30,14 @@ class SignupViewModel(
 
         viewModelScope.launch {
             _ui.update { it.copy(isLoading = true, error = null) }
-            try {
-                val req = SignupRequest(s.name, s.email, s.password)
-                // TODO: El DTO de la capa de datos (dto.SignupRequest) y el local (SignupRequest) no coinciden
-                // Es necesario mapear de uno a otro antes de llamar al repositorio.
-                // Por ahora, se asume que son iguales para que compile.
-                // authRepo.register(req) // <-- Esto fallará si los DTOs no coinciden
-                _ui.update { it.copy(isLoading = false, done = true) }
-            } catch (e: Exception) {
-                fail(e.message ?: "Error al registrar")
-            }
+
+            authRepo.signup(s.name, s.email, s.password)
+                .onSuccess {
+                    _ui.update { it.copy(isLoading = false, done = true) }
+                }
+                .onFailure { e ->
+                    fail(e.message ?: "Error desconocido al registrar")
+                }
         }
     }
 
@@ -56,6 +47,5 @@ class SignupViewModel(
 
     fun resetDone() {
         _ui.update { it.copy(done = false) }
-
     }
 }

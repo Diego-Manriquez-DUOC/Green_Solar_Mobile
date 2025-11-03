@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 // Ejemplo: ajusta los nombres exactos a lo que te entrega Xano
 data class LoginRequest(val email: String, val password: String)
 
-data class SignupRequest(val name: String, val email: String, val password: String)
+data class SignupRequest(val username: String, val email: String, val password: String)
 
 // Lo que devuelve el api en login
 data class LoginResponseDto(

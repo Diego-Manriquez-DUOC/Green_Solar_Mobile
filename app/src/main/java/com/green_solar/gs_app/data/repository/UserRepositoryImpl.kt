@@ -17,4 +17,5 @@ class UserRepositoryImpl(context: Context) : UserRepository {
     override suspend fun getUserById(id: Int): Result<User> = runCatching {
         api.getCurrentUser().toDomain()
     }
+
 }

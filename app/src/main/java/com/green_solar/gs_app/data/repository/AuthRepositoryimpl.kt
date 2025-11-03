@@ -20,8 +20,9 @@ class AuthRepositoryImpl(context: Context) : AuthRepository {
         me.toDomain()                             // 3) mapeas a dominio
     }
 
-
-    override suspend fun signup(email: String, password: String): Result<User> = runCatching {
+    override suspend fun signup(name: String, email: String, password: String): Result<User> = runCatching {
+        // La API dummy espera un LoginRequest, por lo que el 'name' no se envía al backend.
+        // Se recibe para mantener la consistencia, pero no se usa en la llamada a la API.
         val res = api.signup(LoginRequest(email, password))
         session.saveToken(res.authToken)         //  guarda el token
         api.getCurrentUser().toDomain()          // traemos el User con el token recién guardado
