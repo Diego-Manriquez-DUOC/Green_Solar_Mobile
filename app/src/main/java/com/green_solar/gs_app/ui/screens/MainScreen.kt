@@ -1,12 +1,16 @@
 package com.green_solar.gs_app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -16,13 +20,23 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.green_solar.gs_app.ui.navigation.Routes
 import com.green_solar.gs_app.ui.theme.GsTheme
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     nav: NavHostController,
-    onLogout: () -> Unit // <-- ¡CORREGIDO! Ya no es @Composable
+    onLogout: () -> Unit
 ) {
+    // 1. Estado para controlar la animación
+    var visible by remember { mutableStateOf(false) }
+
+    // 2. Efecto que se ejecuta una sola vez para disparar la animación
+    LaunchedEffect(Unit) {
+        delay(200) // 200 milisegundos
+        visible = true
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = { Text("Green Solar") })
@@ -49,32 +63,42 @@ fun MainScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // --- Tarjetas de Navegación ---
-            NavCard(
-                title = "Mis Proyectos",
-                subtitle = "Visualiza tus instalaciones y su estado.",
-                onClick = { /* TODO: nav.navigate(Routes.Projects) */ },
-                icon = { Icon(Icons.Default.WbSunny, null, tint = MaterialTheme.colorScheme.primary) }
-            )
+            AnimatedVisibility(
+                visible = visible,
+                enter = slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = tween(durationMillis = 500)
+                ) + fadeIn(animationSpec = tween(durationMillis = 500))
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // --- Tarjetas de Navegación ---
+                    NavCard(
+                        title = "Mis Proyectos",
+                        subtitle = "Visualiza tus instalaciones y su estado.",
+                        onClick = { nav.navigate(Routes.Projects) }, // <-- ¡CONECTADO!
+                        icon = { Icon(Icons.Default.WbSunny, null, tint = MaterialTheme.colorScheme.primary) }
+                    )
 
-            NavCard(
-                title = "Monitoreo y Ahorro",
-                subtitle = "Revisa tu consumo y ahorro energético.",
-                onClick = { /* TODO: nav.navigate(Routes.Monitoring) */ },
-                icon = { Icon(Icons.Default.BarChart, null, tint = MaterialTheme.colorScheme.primary) }
-            )
+                    NavCard(
+                        title = "Monitoreo y Ahorro",
+                        subtitle = "Revisa tu consumo y ahorro energético.",
+                        onClick = { nav.navigate(Routes.Monitoring) }, // <-- ¡CONECTADO!
+                        icon = { Icon(Icons.Default.BarChart, null, tint = MaterialTheme.colorScheme.primary) }
+                    )
 
-            NavCard(
-                title = "Mi Perfil",
-                subtitle = "Administra tus datos y configuración.",
-                onClick = { nav.navigate(Routes.Profile) },
-                icon = { Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary) }
-            )
+                    NavCard(
+                        title = "Mi Perfil",
+                        subtitle = "Administra tus datos y configuración.",
+                        onClick = { nav.navigate(Routes.Profile) },
+                        icon = { Icon(Icons.Default.AccountCircle, null, tint = MaterialTheme.colorScheme.primary) }
+                    )
+                }
+            }
 
             Spacer(Modifier.weight(1f)) // Empuja el botón de logout hacia abajo
 
             OutlinedButton(
-                onClick = onLogout, // Ahora coincide perfectamente
+                onClick = onLogout,
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Cerrar sesión") }
         }
