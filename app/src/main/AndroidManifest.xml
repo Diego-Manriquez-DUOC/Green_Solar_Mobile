@@ -15,10 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Gs">
 
-        <!-- ✅ PASO 2: Declarar el FileProvider con la authority CORRECTA -->
+        <!-- ✅ CORREGIDO: La autoridad ahora coincide con la del código -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider" 
+            android:authorities="${applicationId}.fileprovider" 
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
