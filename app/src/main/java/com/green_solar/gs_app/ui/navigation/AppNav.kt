@@ -20,6 +20,7 @@ import com.green_solar.gs_app.ui.components.auth.SignupViewModel
 import com.green_solar.gs_app.ui.components.login.LoginVMFactory
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
 import com.green_solar.gs_app.ui.screens.LoginScreen
+import com.green_solar.gs_app.ui.screens.MainScreen
 import com.green_solar.gs_app.ui.screens.SignupScreen
 
 object Routes {
@@ -27,6 +28,8 @@ object Routes {
     const val Login = "login"
     const val Profile = "profile"
     const val SignUp = "signup"
+
+    const val Main = "main"
 }
 
 @Composable
@@ -41,13 +44,9 @@ fun AppNav() {
             LaunchedEffect(Unit) {
                 val hasToken = SessionManager(ctx).hasToken()
                 if (hasToken) {
-                    nav.navigate(Routes.Profile) {
-                        popUpTo(Routes.Splash) { inclusive = true }
-                    }
+                    nav.navigate(Routes.Main) { popUpTo(Routes.Splash) { inclusive = true } }
                 } else {
-                    nav.navigate(Routes.Login) {
-                        popUpTo(Routes.Splash) { inclusive = true }
-                    }
+                    nav.navigate(Routes.Login) { popUpTo(Routes.Splash) { inclusive = true } }
                 }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,7 +62,7 @@ fun AppNav() {
             LoginScreen(
                 vm = vm,
                 onLoggedIn = {
-                    nav.navigate(Routes.Profile) {
+                    nav.navigate(Routes.Main) {
                         popUpTo(Routes.Login) { inclusive = true }
                     }
                 },
@@ -101,6 +100,19 @@ fun AppNav() {
                 onRegistered = {
                     nav.popBackStack(Routes.SignUp, inclusive = true)
                     nav.navigate(Routes.Login)
+                }
+            )
+        }
+        // 5) Main
+        composable(Routes.Main) {
+            MainScreen(
+                nav = nav,
+                onLogout = {
+                    // Limpia sesión y vuelve a Login
+                    SessionManager(ctx)
+                    nav.navigate(Routes.Login) {
+                        popUpTo(Routes.Main) { inclusive = true }
+                    }
                 }
             )
         }
