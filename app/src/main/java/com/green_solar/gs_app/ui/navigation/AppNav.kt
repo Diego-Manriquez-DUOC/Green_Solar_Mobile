@@ -46,7 +46,7 @@ fun AppNav() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // ✅ PASO 2: Añadido un fundido cruzado (Crossfade) a todas las transiciones.
+    // PASO 2: Añadido un fundido cruzado (Crossfade) a todas las transiciones.
     // Esto hará que el cambio de pantalla al cerrar sesión sea suave y elegante.
     NavHost(
         navController = nav,
