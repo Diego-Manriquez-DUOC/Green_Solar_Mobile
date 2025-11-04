@@ -98,7 +98,8 @@ fun AppNav() {
                         popUpTo(nav.graph.id) { inclusive = true }
                         launchSingleTop = true
                     }
-                }
+                },
+                onLoginClicked = { nav.popBackStack() }
             )
         }
 
@@ -110,9 +111,10 @@ fun AppNav() {
 
             ProfileScreen(
                 viewModel = vm,
+                onBack = { nav.popBackStack() },
                 onLogout = {
                     scope.launch {
-                        vm.logout() // El ViewModel ya se encarga de llamar al repo y limpiar la sesión
+                        authRepo.logout()
                         nav.navigate(Routes.Login) {
                             popUpTo(nav.graph.id) { inclusive = true }
                             launchSingleTop = true
@@ -123,8 +125,11 @@ fun AppNav() {
         }
 
         composable(Routes.Main) {
-            // ✅ Refactorizado: Usamos el repositorio para una lógica de logout consistente
-            val authRepo = remember { AuthRepositoryImpl(ctx) }
+            val app = ctx.applicationContext as Application
+            val userRepo = remember(ctx) { UserRepositoryImpl(ctx) }
+            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            val profileViewModel: ProfileViewModel = viewModel(factory = ProfileVMFactory(app, userRepo, authRepo))
+
             MainScreen(
                 nav = nav,
                 onLogout = {
@@ -135,7 +140,8 @@ fun AppNav() {
                             launchSingleTop = true
                         }
                     }
-                }
+                },
+                profileViewModel = profileViewModel
             )
         }
 

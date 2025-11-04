@@ -8,13 +8,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.green_solar.gs_app.ui.components.auth.SignupViewModel  // <-- ajusta si tu VM está en otro paquete
+import com.green_solar.gs_app.ui.components.auth.SignupViewModel
+import com.green_solar.gs_app.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(
     viewModel: SignupViewModel,
-    onRegistered: () -> Unit
+    onRegistered: () -> Unit,
+    onLoginClicked: () -> Unit
 ) {
     val state by viewModel.ui.collectAsState()
 
@@ -30,7 +32,12 @@ fun SignupScreen(
     var showConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Crear cuenta") }) }
+        topBar = { CenterAlignedTopAppBar(
+            title = { Text("Crear cuenta", color = White) },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -50,7 +57,10 @@ fun SignupScreen(
                     state.nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = White
+                )
             )
 
             // Email
@@ -63,7 +73,10 @@ fun SignupScreen(
                     state.emailError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = White
+                )
             )
 
             // Contraseña
@@ -82,7 +95,10 @@ fun SignupScreen(
                     TextButton(onClick = { showPass = !showPass }) {
                         Text(if (showPass) "Ocultar" else "Ver")
                     }
-                }
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = White
+                )
             )
 
             // Confirmar contraseña
@@ -101,7 +117,10 @@ fun SignupScreen(
                     TextButton(onClick = { showConfirm = !showConfirm }) {
                         Text(if (showConfirm) "Ocultar" else "Ver")
                     }
-                }
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    containerColor = White
+                )
             )
 
             // Error general de API/red
@@ -120,6 +139,17 @@ fun SignupScreen(
                     CircularProgressIndicator(Modifier.size(20.dp))
                 } else {
                     Text("Registrarme")
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("¿Ya tienes cuenta?")
+                TextButton(onClick = onLoginClicked) {
+                    Text("Inicia sesion")
                 }
             }
         }
