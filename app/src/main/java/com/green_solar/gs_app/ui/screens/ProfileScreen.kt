@@ -29,7 +29,6 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
 import com.green_solar.gs_app.ui.theme.White
-import kotlinx.coroutines.Job
 import java.io.File
 import java.util.*
 
@@ -38,7 +37,6 @@ import java.util.*
 fun ProfileScreen(
     viewModel: ProfileViewModel,
     onBack: () -> Unit,
-    onLogout: () -> Job
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -58,7 +56,7 @@ fun ProfileScreen(
             tempCameraUri = uri
             cameraLauncher.launch(uri)
         } else {
-            // TODO: Handle permission denial
+            // TODO: Agregar funcion en caso de no tener permisos de camara.
         }
     }
 
@@ -145,7 +143,7 @@ fun ProfileScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val avatarModel = user.imageUrl.takeIf { it.isNotBlank() }
+                        val avatarModel = user.img_url?.takeIf { it.isNotBlank() }
                             ?: "https://i.pravatar.cc/150?img=3"
 
                         AsyncImage(
@@ -162,7 +160,7 @@ fun ProfileScreen(
                         Spacer(Modifier.height(32.dp))
 
                         OutlinedTextField(
-                            value = "${user.firstName} ${user.lastName}",
+                            value = user.name,
                             onValueChange = {},
                             label = { Text("Nombre") },
                             readOnly = true,

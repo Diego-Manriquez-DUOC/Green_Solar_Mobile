@@ -4,12 +4,12 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.green_solar.gs_app.core.utils.saveImageToInternalStorage
-import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.domain.repository.AuthRepository
 import com.green_solar.gs_app.domain.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -21,59 +21,50 @@ class ProfileViewModel(
     private val authRepo: AuthRepository
 ) : AndroidViewModel(application) {
 
-    private val sessionManager = SessionManager(application)
-
-    private val _apiUserState = MutableStateFlow(ProfileUiState(isLoading = true))
-
-    // --- ¡AQUÍ ESTÁ LA MAGIA! ---
-    // Combinamos los datos del usuario de la API con la URI del avatar local.
-    val uiState: StateFlow<ProfileUiState> = combine(
-        _apiUserState,
-        sessionManager.avatarUriFlow
-    ) { apiState, localAvatarUri ->
-        // Si hay una URI local, esa tiene prioridad. Si no, usamos la de la API.
-        val finalImageUrl = localAvatarUri ?: apiState.user?.imageUrl
-        // Creamos un nuevo estado con la imagen correcta.
-        apiState.copy(user = apiState.user?.copy(imageUrl = finalImageUrl ?: ""))
-    }.stateIn( // Convertimos el Flow combinado en un StateFlow que la UI pueda usar.
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ProfileUiState(isLoading = true)
-    )
+    private val _uiState = MutableStateFlow(ProfileUiState(isLoading = true))
+    val uiState = _uiState.asStateFlow()
 
     fun loadMe() {
-        _apiUserState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val result = runCatching { userRepo.getCurrentUser().getOrThrow() }
+            val result = userRepo.getCurrentUser()
 
             withContext(Dispatchers.Main) {
                 result.onSuccess {
-                    _apiUserState.update { s -> s.copy(isLoading = false, user = it, error = null) }
+                    _uiState.update { s -> s.copy(isLoading = false, user = it, error = null) }
                 }.onFailure {
-                    val msg = when (it) {
-                        is HttpException -> if (it.code() == 401) "Sesión caducada" else "Error del servidor (${it.code()})"
-                        is IOException -> "Sin conexión"
-                        else -> it.message ?: "Error inesperado"
-                    }
-                    _apiUserState.update { s -> s.copy(isLoading = false, user = null, error = msg) }
+                    handleError(it)
                 }
             }
         }
     }
 
-    /**
-     * Se llama cuando el usuario elige una nueva foto de la galería o la cámara.
-     */
+    //Ahora la API se encarga de almacenar la foto de perfil del usuario.
     fun onAvatarChange(uri: Uri) {
+        _uiState.update { it.copy(isLoading = true, error = null) }
+
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Guarda la imagen en el almacenamiento interno y obtiene su nueva URI permanente.
-            val permanentUri = saveImageToInternalStorage(getApplication(), uri)
-            permanentUri?.let {
-                // 2. Guarda la nueva URI en el SessionManager.
-                sessionManager.saveAvatarUri(it.toString())
+            val result = userRepo.updateProfileImage(uri)
+
+            withContext(Dispatchers.Main) {
+                result.onSuccess {
+                    _uiState.update { s -> s.copy(isLoading = false, user = it, error = null) }
+                }.onFailure {
+                    handleError(it)
+                }
             }
         }
+    }
+
+    private fun handleError(exception: Throwable) {
+        val msg = when (exception) {
+            is HttpException -> "Error del servidor: ${exception.code()} ${exception.message()}"
+            is IOException -> "Sin conexión a Internet"
+            is IllegalStateException -> "Error: ${exception.message}"
+            else -> exception.message ?: "Error inesperado"
+        }
+        _uiState.update { s -> s.copy(isLoading = false, error = msg) }
     }
 
     fun retry() = loadMe()

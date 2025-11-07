@@ -3,13 +3,11 @@ package com.green_solar.gs_app.domain.model
 
 
 /**
- * Modelo de dominio SIN nulos (defaults seguros).
+ * Modelo de dominio para user, basado en la estructura definida en al API.
  */
 data class User(
-    val id: String,
-    val username: String,
+    val user_id: String,
+    val name: String,
     val email: String,
-    val firstName: String,
-    val lastName: String,
-    val imageUrl: String
+    val img_url: String?
 )
