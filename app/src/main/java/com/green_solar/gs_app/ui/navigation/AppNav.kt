@@ -112,15 +112,6 @@ fun AppNav() {
             ProfileScreen(
                 viewModel = vm,
                 onBack = { nav.popBackStack() },
-                onLogout = {
-                    scope.launch {
-                        authRepo.logout()
-                        nav.navigate(Routes.Login) {
-                            popUpTo(nav.graph.id) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                }
             )
         }
 

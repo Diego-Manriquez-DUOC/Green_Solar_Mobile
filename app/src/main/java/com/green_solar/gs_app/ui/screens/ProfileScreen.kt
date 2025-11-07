@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -152,7 +153,8 @@ fun ProfileScreen(
                             modifier = Modifier
                                 .size(112.dp)
                                 .clip(CircleShape)
-                                .clickable { showImageSourceDialog = true }
+                                .clickable { showImageSourceDialog = true },
+                            contentScale = ContentScale.Crop
                         )
                         Spacer(Modifier.height(8.dp))
                         Text("Presiona para cambiar", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
