@@ -9,7 +9,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.green_solar.gs_app.ui.components.auth.SignupViewModel
-import com.green_solar.gs_app.ui.theme.White
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +33,7 @@ fun SignupScreen(
 
     Scaffold(
         topBar = { CenterAlignedTopAppBar(
-            title = { Text("Crear cuenta", color = White) },
+            title = { Text("Crear cuenta") },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
@@ -59,7 +59,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
 
@@ -75,7 +75,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
 
@@ -97,7 +97,7 @@ fun SignupScreen(
                     }
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
 
@@ -119,7 +119,7 @@ fun SignupScreen(
                     }
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
 

@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
-import com.green_solar.gs_app.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,9 +25,9 @@ fun LoginScreen(
 
     Scaffold(
         topBar = { CenterAlignedTopAppBar(
-            title = { Text("Iniciar sesión", color = White) },
+            title = { Text("Iniciar sesión") },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary
+
             )
         ) }
     ) { padding ->
@@ -67,7 +66,7 @@ fun LoginScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
             OutlinedTextField(
@@ -78,7 +77,7 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    containerColor = White
+
                 )
             )
 

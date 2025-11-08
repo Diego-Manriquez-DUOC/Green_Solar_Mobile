@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.green_solar.gs_app.ui.theme.White
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,14 +18,14 @@ fun ProjectsScreen(onNavigateBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Proyectos", color = White) },
+                title = { Text("Mis Proyectos") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    //Diseño de color TopBar pero nos gusto mas el color en negro sencillo
                 )
             )
         }

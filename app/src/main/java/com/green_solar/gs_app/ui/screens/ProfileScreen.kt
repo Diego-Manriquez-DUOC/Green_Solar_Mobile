@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
-import com.green_solar.gs_app.ui.theme.White
 import java.io.File
 import java.util.*
 
@@ -86,18 +85,17 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mi perfil", color = White) },
+                title = { Text("Mi perfil") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = White
+                            contentDescription = "Back"
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    //Diseño de color TopBar pero nos gusto mas el color en negro sencillo
                 )
             )
         }
@@ -168,7 +166,6 @@ fun ProfileScreen(
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                containerColor = White
                             )
                         )
                         Spacer(Modifier.height(16.dp))
@@ -179,7 +176,6 @@ fun ProfileScreen(
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                containerColor = White
                             )
                         )
                         Spacer(Modifier.height(16.dp))
@@ -190,7 +186,6 @@ fun ProfileScreen(
                             readOnly = true,
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                containerColor = White
                             )
                         )
                     }
