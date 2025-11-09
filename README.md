@@ -56,9 +56,10 @@
 
 | Método | Ruta         | Body (Ejemplo)                    | Respuesta (Éxito)                |
 |--------|--------------|-----------------------------------|------------------------------------|
-| POST   | /auth/signup | `{ "email", "password", "name" }` | `200` con `{ authToken }`          |
-| POST   | /auth/login  | `{ "email", "password" }`         | `200` con `{ authToken }`          |
-| GET    | /me     | - (Requiere header `Authorization`) | `200` con `{ id, email, name, img_url... }` |
+| POST   | /auth/register | `{ "email", "password", "name" }` | `201` con `{ "access_token": "token", "message": "message", "user": user(email, img_url, name, user_id)}`          |
+| POST   | /auth/login  | `{ "email", "password" }`         | `200` con `{ "access_token": "token", "message": "message", "user": user(email, img_url, name, user_id)}`          |
+| GET    | /me     | - (Requiere header `Authorization: Bearer <token>`) | `200` con `{ "user": user(email, img_url, name, user_id) }` |
+| PUT    | /me/update_pfp     | FormData con campo `image` (archivo) - (Requiere header `Authorization: Bearer <token>`) | `200` con `{ "message": "Profile image updated successfully", "user": user(email, img_url, name, user_id) }` |
 
 ## 6. User flows
 
