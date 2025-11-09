@@ -27,39 +27,50 @@ class LoginViewModel(
         _ui.update { it.copy(isLoading = true, error = null, done = false) }
 
         viewModelScope.launch {
-            repo.login(email, password)
-                .onSuccess {
-                    _ui.update { it.copy(isLoading = false, done = true) }
-                }
-                .onFailure { e ->
-                    _ui.update {
-                        it.copy(
-                            isLoading = false,
-                            error = e.message ?: "Error de login"
-                        )
+            try {
+                repo.login(email, password)
+                    .onSuccess { _ui.update { it.copy(isLoading = false, done = true) } }
+                    .onFailure {
+                        // Esto se ejecuta si el repo maneja el error y devuelve un Result.failure
+                        _ui.update {
+                            it.copy(
+                                isLoading = false,
+                                error = "El email o la contraseña son incorrectos."
+                            )
+                        }
                     }
+            } catch (e: Exception) {
+                // Esto se ejecuta si la llamamos al repo lanza una excepción (como un HTTP 401)
+                _ui.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "El email o la contraseña son incorrectos."
+                    )
                 }
+            }
         }
-
     }
+
     private fun validateLogin(): Boolean {
         val s = _ui.value
 
-        val emailError = if (!Patterns.EMAIL_ADDRESS.matcher(s.email).matches()) "Email inválido" else null
-        val passwordError = if (s.password.isEmpty()) {
-            "Introduzca su contraseña porfavor"
-        } else if (s.password.length < 6 || !s.password.any { it.isDigit() }) {
-            "Mínimo 6 caracteres y un numero"
-        } else {
-            null
+        val emailError = when {
+            s.email.isBlank() -> "Introduzca su email"
+            !Patterns.EMAIL_ADDRESS.matcher(s.email).matches() -> "El formato del email es inválido"
+            else -> null
+        }
+
+        val passwordError = when {
+            s.password.isEmpty() -> "Introduzca su contraseña"
+            s.password.length < 6 -> "La contraseña debe tener al menos 6 caracteres"
+            !s.password.any { it.isDigit() } -> "La contraseña debe contener al menos un número"
+            else -> null
         }
 
         _ui.update {
             it.copy(
-
                 emailError = emailError,
                 passwordError = passwordError,
-
             )
         }
         return emailError == null && passwordError == null

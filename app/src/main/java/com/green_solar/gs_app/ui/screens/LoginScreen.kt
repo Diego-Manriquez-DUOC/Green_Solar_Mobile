@@ -59,16 +59,21 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(Modifier.height(24.dp))
+
+            // Email con validación
             OutlinedTextField(
                 value = state.email,
                 onValueChange = vm::onEmailChange,
                 label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-
-                )
+                isError = state.emailError != null,
+                supportingText = {
+                    state.emailError?.let { Text(it) }
+                }
             )
+
+            // Password con validación
             OutlinedTextField(
                 value = state.password,
                 onValueChange = vm::onPasswordChange,
@@ -76,9 +81,10 @@ fun LoginScreen(
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-
-                )
+                isError = state.passwordError != null,
+                supportingText = {
+                    state.passwordError?.let { Text(it) }
+                }
             )
 
             Button(
@@ -89,6 +95,7 @@ fun LoginScreen(
                 Text(if (state.isLoading) "Entrando..." else "Entrar")
             }
 
+            // Error general de la API (ej. credenciales incorrectas)
             state.error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
