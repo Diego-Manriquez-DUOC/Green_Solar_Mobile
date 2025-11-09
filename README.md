@@ -10,8 +10,8 @@
     - **Arquitectura:** MVVM con principios de Clean Architecture (UI -> ViewModel -> Repository -> Data Source)
     - **Asincronía:** Kotlin Coroutines & Flow
     - **Navegación:** Jetpack Navigation Compose
-    - **Networking:** Retrofit & Gson
-    - **Carga de Imágenes:** Coil
+    - **Networking:** Retrofit
+    - **Carga de Imágenes:** API
     - **Persistencia Local:** Jetpack DataStore Preferences
 
 - **Instalación:**
@@ -58,7 +58,7 @@
 |--------|--------------|-----------------------------------|------------------------------------|
 | POST   | /auth/signup | `{ "email", "password", "name" }` | `200` con `{ authToken }`          |
 | POST   | /auth/login  | `{ "email", "password" }`         | `200` con `{ authToken }`          |
-| GET    | /auth/me     | - (Requiere header `Authorization`) | `200` con `{ id, email, name, ... }` |
+| GET    | /me     | - (Requiere header `Authorization`) | `200` con `{ id, email, name, img_url... }` |
 
 ## 6. User flows
 
