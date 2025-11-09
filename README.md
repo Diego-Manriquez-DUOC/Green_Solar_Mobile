@@ -48,11 +48,11 @@
 - **Recursos Nativos (Cámara/Galería):**
     - El usuario puede elegir una foto de la **Galería** o tomar una nueva con la **Cámara**.
     - Se gestionan los **permisos de cámara** en tiempo de ejecución.
-    - La imagen tomada se guarda en la caché de la app usando un `FileProvider` configurado correctamente para evitar crashes.
+    - La imagen guardada se guarda en el perfil ya que el api guarda imagenes.
 - **Persistencia de Imagen de Perfil:** Aunque la UI no se actualiza al instante (para mantener la lógica simple), la URI de la nueva imagen de perfil se guarda en el `SessionManager` para un uso futuro (ej: subida al servidor).
 
 ## 5. Endpoints
-**Base URL:** `https://x8ki-letl-twmt.n7.xano.io/api:Rfm_61dW`
+**Base URL:** `https://greensolarback-production.up.railway.app/`
 
 | Método | Ruta         | Body (Ejemplo)                    | Respuesta (Éxito)                |
 |--------|--------------|-----------------------------------|------------------------------------|
@@ -75,6 +75,6 @@
     2. El `Splash` detecta el token guardado y lo redirige directamente a la pantalla `Main`.
 
 - **Flujo de Cierre de Sesión:**
-    1. Desde `Main` o `Profile`, el usuario toca en "Cerrar Sesión".
-    2. El token local se borra.
-    3. El usuario es redirigido a la pantalla de `Login`, y el historial de navegación se limpia.
+    1. Desde `Main` o `Profile`, el usuario toca en "Cerrar Sesión" desde la pantalla navegable en donde se abrira un popup de confirmación.
+    2. El token local hecho con localstore se borra.
+    3. El usuario es redirigido a la pantalla de `Login`, y el historial de navegación se limpia con la imagen igualmente ya que estamos usando una nueva api que guarda la imagen con el usuario.
