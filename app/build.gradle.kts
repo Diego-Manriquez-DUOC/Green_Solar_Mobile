@@ -73,15 +73,26 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation(libs.firebase.annotations)
+    implementation(libs.play.services.analytics.impl)
 
-    // --- Testing ---
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.04.01"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    //Kotest
+    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+
+
+    //Junit 5
+    testImplementation("junit:junit:5.10.0")
+
+    //Mock
+    testImplementation("io.mockk:mockk:1.13.10")
+
+    //Compose UI test
+    androidTestImplementation("androidx.compose.ui:ui-test-junit5")
+    androidTestImplementation("androidx.compose.ui:ui-test-manifest")
+
+
+
+
 }
 
 // SOLUCIÓN DEFINITIVA: Forzar una única versión de la librería de navegación
