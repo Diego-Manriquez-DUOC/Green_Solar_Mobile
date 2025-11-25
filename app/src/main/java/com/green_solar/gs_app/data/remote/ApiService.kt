@@ -10,6 +10,9 @@ import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
+    /*
+        API Auth & User
+     */
     @POST("auth/login")
     suspend fun login(@Body req: LoginRequest): LoginResponseDto
 
@@ -26,7 +29,7 @@ interface ApiService {
         @Part image: MultipartBody.Part
     ): MeResponse
 
-    /*
+     /*
          API Products
      */
     @GET("api/products")

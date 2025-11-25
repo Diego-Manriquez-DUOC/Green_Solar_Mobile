@@ -15,5 +15,6 @@ fun ProductDto.toDomain(): Product = Product(
 fun Product.toDto(): ProductDto = ProductDto(
     id = this.id.toLong(),
     name = this.title,
-    price = this.price
+    price = this.price,
+    description = ""
 )

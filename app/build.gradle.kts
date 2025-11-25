@@ -75,21 +75,27 @@ dependencies {
     implementation(libs.firebase.annotations)
     implementation(libs.play.services.analytics.impl)
 
-    //Kotest
-    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+    // Testing - JUnit
+    testImplementation("junit:junit:4.13.2")
+
+    // Testing - Coroutines
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    // Testing - MockK (mocking framework)
+    testImplementation("io.mockk:mockk:1.13.8")
+    androidTestImplementation("io.mockk:mockk-android:1.13.8")
 
 
-    //Junit 5
-    testImplementation("junit:junit:5.10.0")
+    // Testing - Turbine (para testar StateFlow/Flow)
+    testImplementation("app.cash.turbine:turbine:1.0.0")
 
-    //Mock
-    testImplementation("io.mockk:mockk:1.13.10")
+    // Testing - Core Testing (para InstantTaskExecutorRule)
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
 
-    //Compose UI test
-    androidTestImplementation("androidx.compose.ui:ui-test-junit5")
-    androidTestImplementation("androidx.compose.ui:ui-test-manifest")
-
+    // Android Testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 
 
