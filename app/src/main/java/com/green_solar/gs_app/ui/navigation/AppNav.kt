@@ -111,7 +111,7 @@ fun AppNav() {
 
             ProfileScreen(
                 viewModel = vm,
-                onBack = { nav.popBackStack() },
+                nav = nav,
             )
         }
 
@@ -137,11 +137,11 @@ fun AppNav() {
         }
 
         composable(Routes.Projects) {
-            ProjectsScreen(onNavigateBack = { nav.popBackStack() })
+            ProjectsScreen(nav = nav)
         }
 
         composable(Routes.Monitoring) {
-            MonitoringScreen(onNavigateBack = { nav.popBackStack() })
+            MonitoringScreen(nav = nav)
         }
     }
 }

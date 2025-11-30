@@ -30,7 +30,7 @@ class SignupViewModel(
             _ui.update { it.copy(isLoading = true, generalError = null) }
             val s = _ui.value
 
-            // 👇 Ajusta esta firma si tu AuthRepository devuelve otro tipo
+            // Ajusta esta firma si tu AuthRepository devuelve otro tipo
             // Recomendado: Result<Unit> o Result<LoginResponse>
             authRepo.signup(name = s.name, email = s.email, password = s.password)
                 .onSuccess {

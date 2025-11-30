@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
 import java.io.File
@@ -36,7 +37,7 @@ import java.util.*
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
-    onBack: () -> Unit,
+    nav: NavController,
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -87,7 +88,11 @@ fun ProfileScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Mi perfil") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (nav.previousBackStackEntry != null) {
+                            nav.popBackStack()
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"

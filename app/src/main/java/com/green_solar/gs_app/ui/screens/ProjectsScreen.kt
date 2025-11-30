@@ -4,24 +4,31 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProjectsScreen(onNavigateBack: () -> Unit) {
+fun ProjectsScreen(nav: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Mis Proyectos") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    IconButton(onClick = {
+                        if (nav.previousBackStackEntry != null) {
+                            nav.popBackStack()
+                        }
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -44,5 +51,5 @@ fun ProjectsScreen(onNavigateBack: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun ProjectsScreenPreview() {
-    ProjectsScreen(onNavigateBack = {})
+    ProjectsScreen(nav = rememberNavController())
 }
