@@ -1,25 +1,32 @@
 package com.green_solar.gs_app.data.remote.dto
 
-// La API solo pide email y password para login, para signup pide email, password y name.
-data class LoginRequest(val email: String, val password: String)
+import com.google.gson.annotations.SerializedName
 
-// 1. Añadimos el campo "role" a la PETICIÓN de registro.
+// Request for login
+data class LoginRequest(
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String
+)
+
+// Request for sign up. Added SerializedName to prevent obfuscation issues.
 data class SignupRequest(
-    val username: String,
-    val email: String, 
-    val password: String
+    @SerializedName("username") val username: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String
 )
 
-// Lo que devuelve el api en login
+// Response from login/signup
 data class AuthResponse(
-    val id : Long,
-    val token : String,
-    val username : String,
-    val imgUrl : String?
+    @SerializedName("id") val id: Long,
+    @SerializedName("token") val token: String,
+    @SerializedName("username") val username: String,
+    @SerializedName("imgUrl") val imgUrl: String?
 )
+
+// Response from /api/auth/me
 data class MeResponse(
-    val username : String,
-    val role : String,
-    val email : String,
-    val imgUrl : String?
+    @SerializedName("username") val username: String,
+    @SerializedName("role") val role: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("imgUrl") val imgUrl: String?
 )

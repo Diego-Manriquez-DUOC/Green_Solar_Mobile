@@ -4,6 +4,7 @@ import com.green_solar.gs_app.core.utils.toDomain
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.remote.dto.CartCreateRequest
+import com.green_solar.gs_app.data.remote.dto.CartItemCreateRequest
 import com.green_solar.gs_app.data.remote.dto.CartUpdateRequest
 import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.repository.CartRepository
@@ -23,15 +24,24 @@ class CartRepositoryImpl(
         api.getCart("Bearer $token", cartId).toDomain()
     }
 
-    override suspend fun createCart(name: String, description: String?, productIds: List<Long>): Result<Cart> = runCatching {
+    override suspend fun createCart(name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
+        if (items.isEmpty()) {
+            throw IllegalArgumentException("Cannot create a cart with no products.")
+        }
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val request = CartCreateRequest(name, description, productIds)
+
+        val requestItems = items.map { (productId, quantity) ->
+            CartItemCreateRequest(id = productId, quantity = quantity)
+        }
+
+        // LAST ATTEMPT: Using positional arguments instead of named arguments.
+        val request = CartCreateRequest(name, description, requestItems)
         api.createCart("Bearer $token", request).toDomain()
     }
 
     override suspend fun updateCart(cartId: Long, name: String?, description: String?, productIds: List<Long>?): Result<Cart> = runCatching {
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val request = CartUpdateRequest(name, description, productIds)
+        val request = CartUpdateRequest(name, description, productIds ?: emptyList())
         api.updateCart("Bearer $token", cartId, request).toDomain()
     }
 

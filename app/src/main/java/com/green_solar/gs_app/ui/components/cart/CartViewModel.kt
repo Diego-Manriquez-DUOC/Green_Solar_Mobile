@@ -30,12 +30,8 @@ class CartViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoadingProducts = true) }
             productRepository.getAllProducts()
-                .onSuccess {
-                    products -> _state.update { it.copy(isLoadingProducts = false, products = products) }
-                }
-                .onFailure {
-                    error -> _state.update { it.copy(isLoadingProducts = false, productsError = error.message) }
-                }
+                .onSuccess { products -> _state.update { it.copy(isLoadingProducts = false, products = products) } }
+                .onFailure { error -> _state.update { it.copy(isLoadingProducts = false, productsError = error.message) } }
         }
     }
 
@@ -43,25 +39,18 @@ class CartViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoadingCarts = true) }
             cartRepository.getUserCarts()
-                .onSuccess { 
-                    carts -> _state.update { it.copy(isLoadingCarts = false, carts = carts) }
-                }
-                .onFailure { 
-                    error -> _state.update { it.copy(isLoadingCarts = false, cartsError = error.message) }
-                }
+                .onSuccess { carts -> _state.update { it.copy(isLoadingCarts = false, carts = carts) } }
+                .onFailure { error -> _state.update { it.copy(isLoadingCarts = false, cartsError = error.message) } }
         }
     }
 
-    fun createCart(name: String, description: String?, productIds: List<Long>) {
+    // CORRECTED: The method now accepts a map of items (product IDs to quantities).
+    fun createCart(name: String, description: String?, items: Map<Long, Int>) {
         viewModelScope.launch {
             _state.update { it.copy(isCreating = true, creationSuccess = false, creationError = null) }
-            cartRepository.createCart(name, description, productIds)
-                .onSuccess { 
-                    _state.update { it.copy(isCreating = false, creationSuccess = true) } 
-                }
-                .onFailure { 
-                    error -> _state.update { it.copy(isCreating = false, creationError = error.message) }
-                }
+            cartRepository.createCart(name, description, items)
+                .onSuccess { _state.update { it.copy(isCreating = false, creationSuccess = true) } }
+                .onFailure { error -> _state.update { it.copy(isCreating = false, creationError = error.message) } }
         }
     }
 

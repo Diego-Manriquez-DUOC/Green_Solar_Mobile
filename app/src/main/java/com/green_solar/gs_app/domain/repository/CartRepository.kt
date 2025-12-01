@@ -19,11 +19,13 @@ interface CartRepository {
 
     /**
      * Creates a new cart.
+     * CORRECTED: The method now accepts a map of product IDs to their quantities,
+     * instead of just a list of IDs.
      * @param name The name of the cart.
      * @param description A description for the cart.
-     * @param productIds A list of product IDs to include in the cart.
+     * @param items A map where the key is the product ID and the value is the quantity.
      */
-    suspend fun createCart(name: String, description: String?, productIds: List<Long>): Result<Cart>
+    suspend fun createCart(name: String, description: String?, items: Map<Long, Int>): Result<Cart>
 
     /**
      * Updates an existing cart.

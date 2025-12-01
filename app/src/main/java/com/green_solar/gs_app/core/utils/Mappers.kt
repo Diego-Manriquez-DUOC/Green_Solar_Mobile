@@ -11,6 +11,7 @@ import com.green_solar.gs_app.domain.model.User
 
 /**
  * Maps a UserDto to a User domain model.
+ * CORRECTED: Uses the new camelCase properties (userId, imgUrl) from the DTO.
  */
 fun UserDto.toDomain(): User {
     return User(
@@ -18,7 +19,7 @@ fun UserDto.toDomain(): User {
         username = this.name,
         email = this.email,
         role = this.role,
-        imgUrl = this.img_url
+        imgUrl = this.imgUrl
     )
 }
 
@@ -57,6 +58,7 @@ fun CartResponse.toDomain(): Cart {
         id = this.id.toString(),
         name = this.name,
         description = this.description,
-        cartItems = this.cartItems.map { it.toDomain() }
+        // Safely map the items, handling potential null list from API
+        cartItems = this.cartItems?.map { it.toDomain() } ?: emptyList()
     )
 }

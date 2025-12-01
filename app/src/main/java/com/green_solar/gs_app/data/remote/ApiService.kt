@@ -15,7 +15,7 @@ interface ApiService {
     @POST("api/auth/register")
     suspend fun signup(@Body req: SignupRequest): AuthResponse
 
-    @GET("api/auth/me")
+    @GET("api/users/me")
     suspend fun getCurrentUser(@Header("Authorization") token: String): MeResponse
 
     @Multipart

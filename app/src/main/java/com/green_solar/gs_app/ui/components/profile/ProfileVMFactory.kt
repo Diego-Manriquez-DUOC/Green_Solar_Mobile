@@ -3,23 +3,28 @@ package com.green_solar.gs_app.ui.components.profile
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.green_solar.gs_app.domain.repository.AuthRepository
-import com.green_solar.gs_app.domain.repository.UserRepository
+import com.green_solar.gs_app.data.local.SessionManager
+import com.green_solar.gs_app.data.remote.ApiService
+import com.green_solar.gs_app.data.remote.RetrofitClient
+import com.green_solar.gs_app.data.repository.AuthRepositoryImpl
+import com.green_solar.gs_app.data.repository.UserRepositoryImpl
 
 /**
- * Fábrica para crear un ProfileViewModel.
- * Ahora también necesita la Application para pasársela al ViewModel.
+ * Factory for creating ProfileViewModel.
+ * It now creates its own dependencies.
  */
 class ProfileVMFactory(
-    private val application: Application, // <-- La fábrica ahora recibe la Application
-    private val userRepo: UserRepository,
-    private val authRepo: AuthRepository
+    private val application: Application
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-            // Y se la pasa al constructor del ViewModel
-            return ProfileViewModel(application, userRepo, authRepo) as T
+            val apiService = RetrofitClient.create(application).create(ApiService::class.java)
+            val sessionManager = SessionManager(application)
+            val authRepository = AuthRepositoryImpl(apiService, sessionManager)
+            val userRepository = UserRepositoryImpl(apiService, sessionManager, application)
+
+            return ProfileViewModel(application, userRepository, authRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
