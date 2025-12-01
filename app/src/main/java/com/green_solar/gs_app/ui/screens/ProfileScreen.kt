@@ -147,7 +147,7 @@ fun ProfileScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val avatarModel = user.img_url?.takeIf { it.isNotBlank() }
+                        val avatarModel = user.imgUrl?.takeIf { it.isNotBlank() }
                             ?: "https://i.pravatar.cc/150?img=3"
 
                         AsyncImage(
@@ -165,7 +165,7 @@ fun ProfileScreen(
                         Spacer(Modifier.height(32.dp))
 
                         OutlinedTextField(
-                            value = user.name,
+                            value = user.username,
                             onValueChange = {},
                             label = { Text("Nombre") },
                             readOnly = true,

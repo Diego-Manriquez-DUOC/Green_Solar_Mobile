@@ -57,7 +57,7 @@ fun AppNav() {
 
     val apiService = remember {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/") // Replace with your actual base URL
+            .baseUrl("http://45.236.131.233:22222/") // Replace with your actual base URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)

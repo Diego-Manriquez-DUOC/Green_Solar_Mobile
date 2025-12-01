@@ -9,17 +9,17 @@ interface ApiService {
     /*
         Auth & User API
      */
-    @POST("auth/login")
+    @POST("api/auth/login")
     suspend fun login(@Body req: LoginRequest): AuthResponse
 
-    @POST("auth/signup")
+    @POST("api/auth/register")
     suspend fun signup(@Body req: SignupRequest): AuthResponse
 
-    @GET("auth/me")
+    @GET("api/auth/me")
     suspend fun getCurrentUser(@Header("Authorization") token: String): MeResponse
 
     @Multipart
-    @PUT("auth/me/update_img")
+    @PUT("api/auth/me/update_img")
     suspend fun updateProfileImage(
         @Header("Authorization") token: String,
         @Part image: MultipartBody.Part

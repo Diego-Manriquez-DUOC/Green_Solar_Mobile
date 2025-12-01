@@ -10,11 +10,10 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
-// MODIFIED: Constructor now accepts dependencies instead of creating them.
 class UserRepositoryImpl(
     private val api: ApiService,
     private val session: SessionManager,
-    private val context: Context // Still need context for ContentResolver
+    private val context: Context
 ) : UserRepository {
 
     override suspend fun getCurrentUser(): Result<User> =
@@ -24,13 +23,13 @@ class UserRepositoryImpl(
 
             val meResponse = api.getCurrentUser("Bearer $token")
             
-            // Manually construct the User domain model
+            // MODIFIED: Aligned with the User.kt data class
             User(
-                user_id = userId.toString(), // Convert Long to String
-                name = meResponse.username,
+                user_id = userId.toString(),
+                username = meResponse.username, // Correct: was name
                 email = meResponse.email,
                 role = meResponse.role,
-                img_url = meResponse.imgUrl
+                imgUrl = meResponse.imgUrl      // Correct: was img_url
             )
         }
 
@@ -51,13 +50,13 @@ class UserRepositoryImpl(
 
         val meResponse = api.updateProfileImage("Bearer $token", body)
 
-        // Manually construct the User domain model
+        // MODIFIED: Aligned with the User.kt data class
         User(
             user_id = userId.toString(),
-            name = meResponse.username,
+            username = meResponse.username,
             email = meResponse.email,
             role = meResponse.role,
-            img_url = meResponse.imgUrl
+            imgUrl = meResponse.imgUrl
         )
     }
 }

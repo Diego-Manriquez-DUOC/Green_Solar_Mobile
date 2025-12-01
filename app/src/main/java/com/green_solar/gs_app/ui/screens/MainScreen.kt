@@ -104,7 +104,7 @@ fun MainScreen(
                     ) {
                         profileState.user?.let {
                             Text(
-                                text = "Bienvenido, ${it.name}",
+                                text = "Bienvenido, ${it.username}",
                                 style = MaterialTheme.typography.headlineSmall,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()

@@ -25,7 +25,7 @@ class CartViewModelFactory(private val context: Context) : ViewModelProvider.Fac
             // 1. Create ApiService instance
             // IMPORTANT: Replace "YOUR_BASE_URL" with your actual backend URL
             val retrofit = Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8080/") // Placeholder for your API base URL
+                .baseUrl("http://45.236.131.233:22222/") // Placeholder for your API base URL
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
             val apiService: ApiService = retrofit.create(ApiService::class.java)

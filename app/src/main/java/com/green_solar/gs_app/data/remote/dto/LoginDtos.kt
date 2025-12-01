@@ -5,7 +5,7 @@ data class LoginRequest(val email: String, val password: String)
 
 // 1. Añadimos el campo "role" a la PETICIÓN de registro.
 data class SignupRequest(
-    val name: String, 
+    val username: String,
     val email: String, 
     val password: String
 )

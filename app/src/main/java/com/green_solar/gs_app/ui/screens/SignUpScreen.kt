@@ -49,12 +49,12 @@ fun SignupScreen(
         ) {
             // Nombre
             OutlinedTextField(
-                value = state.name,
-                onValueChange = viewModel::onName,
+                value = state.username,
+                onValueChange = viewModel::onUsername,
                 label = { Text("Nombre") },
-                isError = state.nameError != null,
+                isError = state.usernameError != null,
                 supportingText = {
-                    state.nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    state.usernameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,

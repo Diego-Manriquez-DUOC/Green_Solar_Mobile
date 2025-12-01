@@ -15,10 +15,10 @@ import com.green_solar.gs_app.domain.model.User
 fun UserDto.toDomain(): User {
     return User(
         user_id = this.user_id,
-        name = this.name,
+        username = this.name,
         email = this.email,
         role = this.role,
-        img_url = this.img_url
+        imgUrl = this.img_url
     )
 }
 

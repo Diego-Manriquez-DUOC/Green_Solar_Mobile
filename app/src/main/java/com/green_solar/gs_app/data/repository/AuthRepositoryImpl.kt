@@ -15,38 +15,22 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): Result<User> = runCatching {
-        // 1. Authenticate and get token
         val authResponse = api.login(LoginRequest(email, password))
         val token = authResponse.token
-
-        // 2. Use token to get full user data
         val meResponse = api.getCurrentUser("Bearer $token")
-
-        // 3. Combine responses to create domain User
         val user = mapToDomain(authResponse, meResponse)
-
-        // 4. Save session data
         session.saveToken(token)
-        session.saveUserId(authResponse.id) // <-- PASO CLAVE AÑADIDO
-
+        session.saveUserId(authResponse.id)
         user
     }
 
-    override suspend fun signup(name: String, email: String, password: String): Result<User> = runCatching {
-        // 1. Register and get token
-        val authResponse = api.signup(SignupRequest(name, email, password))
+    override suspend fun signup(username: String, email: String, password: String): Result<User> = runCatching {
+        val authResponse = api.signup(SignupRequest(username, email, password))
         val token = authResponse.token
-
-        // 2. Use token to get full user data
         val meResponse = api.getCurrentUser("Bearer $token")
-
-        // 3. Combine responses to create domain User
         val user = mapToDomain(authResponse, meResponse)
-
-        // 4. Save session data
         session.saveToken(token)
-        session.saveUserId(authResponse.id) // <-- PASO CLAVE AÑADIDO
-
+        session.saveUserId(authResponse.id)
         user
     }
 
@@ -54,13 +38,14 @@ class AuthRepositoryImpl(
         session.clear()
     }
 
+    // MODIFIED: Aligned with the User.kt data class
     private fun mapToDomain(auth: AuthResponse, me: MeResponse): User {
         return User(
             user_id = auth.id.toString(),
-            name = auth.username,
+            username = auth.username, // Correct: was name
             email = me.email,
             role = me.role,
-            img_url = auth.imgUrl
+            imgUrl = auth.imgUrl      // Correct: was img_url
         )
     }
 }
