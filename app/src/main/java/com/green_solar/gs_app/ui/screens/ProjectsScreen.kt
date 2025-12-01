@@ -48,6 +48,8 @@ fun ProjectsScreen(
     LaunchedEffect(state.deleteSuccess, state.deleteError) {
         if (state.deleteSuccess) {
             scope.launch { snackbarHostState.showSnackbar("Quote deleted successfully!") }
+            // Add this line to refresh the list
+            vm.loadUserCarts()
             vm.resetDeleteStatus()
         }
         state.deleteError?.let {

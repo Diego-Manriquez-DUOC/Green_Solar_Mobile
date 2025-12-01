@@ -48,6 +48,9 @@ class CartRepositoryImpl(
 
     override suspend fun deleteCart(cartId: Long): Result<Unit> = runCatching {
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        api.deleteCart("Bearer $token", cartId)
+        val response = api.deleteCart("Bearer $token", cartId)
+        if (!response.isSuccessful) {
+            throw Exception("Failed to delete cart: ${response.errorBody()?.string()}")
+        }
     }
 }

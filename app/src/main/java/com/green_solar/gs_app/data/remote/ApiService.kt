@@ -3,6 +3,7 @@ package com.green_solar.gs_app.data.remote
 import com.green_solar.gs_app.data.remote.dto.*
 import com.green_solar.gs_app.domain.model.ProductCategory
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
@@ -93,5 +94,5 @@ interface ApiService {
     suspend fun deleteCart(
         @Header("Authorization") token: String,
         @Path("cartId") cartId: Long
-    ): Unit
+    ): Response<Unit>
 }
