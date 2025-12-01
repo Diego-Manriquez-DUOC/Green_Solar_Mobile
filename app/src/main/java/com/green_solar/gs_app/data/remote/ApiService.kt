@@ -1,13 +1,18 @@
 package com.green_solar.gs_app.data.remote
 
-import com.green_solar.gs_app.data.remote.dto.LoginRequest
-import com.green_solar.gs_app.data.remote.dto.LoginResponseDto
-import com.green_solar.gs_app.data.remote.dto.MeResponse
-import com.green_solar.gs_app.data.remote.dto.ProductDto
-import com.green_solar.gs_app.data.remote.dto.SignupRequest
-import com.green_solar.gs_app.data.remote.dto.SignupResponseDto
+import com.green_solar.gs_app.data.remote.dto.*
 import okhttp3.MultipartBody
 import retrofit2.http.*
+
+/**
+ * Wrapper genérico para las respuestas de la API.
+ */
+data class ApiResponse<T>(
+    val success: Boolean,
+    val data: T,
+    val message: String? = null,
+    val total: Int? = null
+)
 
 interface ApiService {
     /*
@@ -29,28 +34,21 @@ interface ApiService {
         @Part image: MultipartBody.Part
     ): MeResponse
 
-     /*
-         API Products
+    /*
+         API de Productos
      */
-    @GET("api/products")
-    suspend fun getProducts(
-        @Header("Authorization") token: String): List<ProductDto>
+    @GET("productos") // Asumiendo que el endpoint es /productos
+    suspend fun getProductos(@Header("Authorization") token: String): ApiResponse<List<ProductoDto>>
 
-    @POST("api/products")
-    suspend fun createProduct(
+    /*
+         API de Cotizaciones
+     */
+    @GET("cotizaciones") // Asumiendo que el endpoint es /cotizaciones
+    suspend fun getCotizaciones(@Header("Authorization") token: String): ApiResponse<List<CotizacionDto>>
+
+    @POST("cotizaciones") // Asumiendo que el endpoint es /cotizaciones
+    suspend fun createCotizacion(
         @Header("Authorization") token: String,
-        @Body product: ProductDto): ProductDto
-
-    @PUT("api/products/{id}")
-    suspend fun updateProduct(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int,
-        @Body product: ProductDto): ProductDto
-
-    @DELETE("api/products/{id}")
-    suspend fun deleteProduct(
-        @Header("Authorization") token: String,
-        @Path("id") id: Int
-    )
-
+        @Body cotizacion: CotizacionDto // Enviamos el DTO directamente
+    ): ApiResponse<CotizacionDto>
 }

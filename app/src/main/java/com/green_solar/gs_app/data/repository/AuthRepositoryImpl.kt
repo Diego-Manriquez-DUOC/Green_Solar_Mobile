@@ -19,7 +19,8 @@ class AuthRepositoryImpl(context: Context) : AuthRepository {
     private val session = SessionManager(context)
 
     override suspend fun signup(name: String, email: String, password: String): Result<User> = runCatching {
-        val signupRequest = SignupRequest(name, email, password)
+        // ¡Lógica implementada! Forzamos el rol a "USER" al crear la petición.
+        val signupRequest = SignupRequest(name, email, password, role = "USER")
         val response = api.signup(signupRequest) // 1. Llama a la API
 
         // 2. Guarda el token

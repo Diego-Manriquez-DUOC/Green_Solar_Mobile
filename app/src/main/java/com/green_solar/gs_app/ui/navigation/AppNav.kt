@@ -38,6 +38,8 @@ object Routes {
     const val Main = "main"
     const val Projects = "projects"
     const val Monitoring = "monitoring"
+    const val Quote = "quote"
+    const val ManageProducts = "manage_products" // Nueva ruta para Admin
 }
 
 @Composable
@@ -46,8 +48,6 @@ fun AppNav() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // PASO 2: Añadido un fundido cruzado (Crossfade) a todas las transiciones.
-    // Esto hará que el cambio de pantalla al cerrar sesión sea suave y elegante.
     NavHost(
         navController = nav,
         startDestination = Routes.Splash,
@@ -142,6 +142,15 @@ fun AppNav() {
 
         composable(Routes.Monitoring) {
             MonitoringScreen(nav = nav)
+        }
+
+        composable(Routes.Quote) {
+            QuoteScreen(nav = nav)
+        }
+
+        // Conectando la nueva pantalla de Admin
+        composable(Routes.ManageProducts) {
+            ManageProductsScreen(nav = nav)
         }
     }
 }

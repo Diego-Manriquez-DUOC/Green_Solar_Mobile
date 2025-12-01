@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.HomeWork
-import androidx.compose.material.icons.outlined.ShowChart
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -40,7 +39,6 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Cuando el usuario pulse "atrás" en esta pantalla, cerramos la app.
     BackHandler {
         (context as? Activity)?.finish()
     }
@@ -55,12 +53,7 @@ fun MainScreen(
             title = { Text("Cerrar Sesión") },
             text = { Text("¿Estás seguro?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onLogout() // Acción real de logout
-                    }
-                ) { Text("Sí") }
+                TextButton(onClick = { showLogoutDialog = false; onLogout() }) { Text("Sí") }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) { Text("No") }
@@ -78,18 +71,12 @@ fun MainScreen(
                         NavigationDrawerItem(
                             label = { Text("Configurar cuenta") },
                             selected = false,
-                            onClick = {
-                                scope.launch { drawerState.close() }
-                                nav.navigate(Routes.Profile)
-                            }
+                            onClick = { scope.launch { drawerState.close() }; nav.navigate(Routes.Profile) }
                         )
                         NavigationDrawerItem(
                             label = { Text("Cerrar sesión") },
                             selected = false,
-                            onClick = {
-                                scope.launch { drawerState.close() }
-                                showLogoutDialog = true
-                            }
+                            onClick = { scope.launch { drawerState.close() }; showLogoutDialog = true }
                         )
                     }
                 }
@@ -101,26 +88,10 @@ fun MainScreen(
                         CenterAlignedTopAppBar(
                             title = { Text("Green Solar") },
                             actions = {
-                                val onProfileClick: () -> Unit = {
-                                    scope.launch {
-                                        drawerState.apply {
-                                            if (isClosed) open() else close()
-                                        }
-                                    }
+                                IconButton(onClick = { scope.launch { drawerState.apply { if (isClosed) open() else close() } } }) {
+                                    Icon(Icons.Default.Person, contentDescription = "Perfil")
                                 }
-
-                                IconButton(onClick = onProfileClick) {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = "Perfil",
-
-                                    )
-                                }
-                            },
-                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                                //Diseño de color TopBar pero nos gusto mas el color en negro sencillo
-
-                            )
+                            }
                         )
                     }
                 ) { padding ->
@@ -131,39 +102,70 @@ fun MainScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = "Bienvenido a Green Solar",
-                            style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Card(onClick = { nav.navigate(Routes.Projects) }) {
-                            ListItem(
-                                leadingContent = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.HomeWork,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                },
-                                headlineContent = { Text("Mis Proyectos") },
-                                supportingContent = { Text("Visualiza y gestiona tus instalaciones solares.") }
+                        profileState.user?.let {
+                            Text(
+                                text = "Bienvenido, ${it.name}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
-                        Card(onClick = { nav.navigate(Routes.Monitoring) }) {
-                            ListItem(
-                                leadingContent = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ShowChart,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                },
-                                headlineContent = { Text("Monitoreo y Ahorro") },
-                                supportingContent = { Text("Consulta tu producción y ahorro en tiempo real.") }
-                            )
+                        val userRole = profileState.user?.role
+
+                        if (userRole == "USER") {
+                            // --- Tarjetas para el rol CLIENTE ---
+                            Card(onClick = { nav.navigate(Routes.Quote) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.RequestQuote, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Nueva Cotización") },
+                                    supportingContent = { Text("Explora productos y crea una nueva cotización.") }
+                                )
+                            }
+                            Card(onClick = { nav.navigate(Routes.Projects) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.HomeWork, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Mis Cotizaciones") },
+                                    supportingContent = { Text("Visualiza tus cotizaciones guardadas.") }
+                                )
+                            }
+                            Card(onClick = { nav.navigate(Routes.Monitoring) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.ShowChart, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Monitoreo y Ahorro") },
+                                    supportingContent = { Text("Consulta tu producción y ahorro en tiempo real.") }
+                                )
+                            }
+                        } else if (userRole == "ADMIN") {
+                            // --- Tarjetas para el rol ADMIN ---
+                            Card(onClick = { nav.navigate(Routes.ManageProducts) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.Category, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Gestionar Productos") },
+                                    supportingContent = { Text("Añadir, editar o eliminar productos.") }
+                                )
+                            }
+                            Card(onClick = { nav.navigate(Routes.Quote) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.RequestQuote, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Nueva Cotización") },
+                                    supportingContent = { Text("Explora productos y crea una nueva cotización.") }
+                                )
+                            }
+                            Card(onClick = { nav.navigate(Routes.Projects) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.HomeWork, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Mis Cotizaciones") },
+                                    supportingContent = { Text("Visualiza tus cotizaciones guardadas.") }
+                                )
+                            }
+                            Card(onClick = { nav.navigate(Routes.Monitoring) }) {
+                                ListItem(
+                                    leadingContent = { Icon(Icons.Outlined.ShowChart, null, modifier = Modifier.size(40.dp)) },
+                                    headlineContent = { Text("Monitoreo y Ahorro") },
+                                    supportingContent = { Text("Consulta tu producción y ahorro en tiempo real.") }
+                                )
+                            }
                         }
                     }
                 }

@@ -5,5 +5,6 @@ data class UserDto(
     val user_id: String,
     val name: String,
     val email: String,
+    val role : String,
     val img_url: String?
 )
