@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel for the Cart screen.
- */
 class CartViewModel(
     private val productRepository: ProductRepository,
     private val cartRepository: CartRepository
@@ -44,17 +41,38 @@ class CartViewModel(
         }
     }
 
-    // CORRECTED: The method now accepts a map of items (product IDs to quantities).
     fun createCart(name: String, description: String?, items: Map<Long, Int>) {
         viewModelScope.launch {
             _state.update { it.copy(isCreating = true, creationSuccess = false, creationError = null) }
             cartRepository.createCart(name, description, items)
-                .onSuccess { _state.update { it.copy(isCreating = false, creationSuccess = true) } }
+                .onSuccess { 
+                    _state.update { it.copy(isCreating = false, creationSuccess = true) }
+                    loadUserCarts() // Refresh the list after creation
+                }
                 .onFailure { error -> _state.update { it.copy(isCreating = false, creationError = error.message) } }
+        }
+    }
+
+    // --- Delete Functionality ---
+    fun deleteCart(cartId: Long) {
+        viewModelScope.launch {
+            _state.update { it.copy(isDeleting = true, deleteSuccess = false, deleteError = null) }
+            cartRepository.deleteCart(cartId)
+                .onSuccess {
+                    _state.update { it.copy(isDeleting = false, deleteSuccess = true) }
+                    loadUserCarts() // Refresh the list to remove the deleted item
+                }
+                .onFailure { error ->
+                    _state.update { it.copy(isDeleting = false, deleteError = error.message) }
+                }
         }
     }
 
     fun resetCreationStatus() {
         _state.update { it.copy(creationSuccess = false, creationError = null) }
+    }
+
+    fun resetDeleteStatus() {
+        _state.update { it.copy(deleteSuccess = false, deleteError = null) }
     }
 }

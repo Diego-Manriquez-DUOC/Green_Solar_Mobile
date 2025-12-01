@@ -7,6 +7,8 @@ import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.repository.CartRepositoryImpl
 import com.green_solar.gs_app.data.repository.ProductRepositoryImpl
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -20,13 +22,19 @@ class CartViewModelFactory(private val context: Context) : ViewModelProvider.Fac
         if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
             
             // --- Dependency Creation ---
-            // In a real app with DI, these would be injected.
 
-            // 1. Create ApiService instance
-            // IMPORTANT: Replace "YOUR_BASE_URL" with your actual backend URL
+            // CORRECTED: Create an OkHttpClient with a logging interceptor to make network calls visible.
+            val logging = HttpLoggingInterceptor()
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY)
+            val client = OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .build()
+
+            // 1. Create ApiService instance, now using the configured OkHttpClient
             val retrofit = Retrofit.Builder()
-                .baseUrl("http://45.236.131.233:22222/") // Placeholder for your API base URL
+                .baseUrl("http://45.236.131.233:22222/")
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(client) // Assign the OkHttpClient to Retrofit
                 .build()
             val apiService: ApiService = retrofit.create(ApiService::class.java)
 

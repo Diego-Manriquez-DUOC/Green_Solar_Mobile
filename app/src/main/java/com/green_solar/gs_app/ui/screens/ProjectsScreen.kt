@@ -28,6 +28,7 @@ import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.model.CartItem
 import com.green_solar.gs_app.ui.components.cart.CartViewModel
 import com.green_solar.gs_app.ui.components.cart.CartViewModelFactory
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +37,30 @@ fun ProjectsScreen(
     vm: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current))
 ) {
     val state by vm.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // --- State for Delete Dialog ---
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var cartToDelete by remember { mutableStateOf<Cart?>(null) }
+
+    // --- LaunchedEffect for Delete Operation ---
+    LaunchedEffect(state.deleteSuccess, state.deleteError) {
+        if (state.deleteSuccess) {
+            scope.launch { snackbarHostState.showSnackbar("Quote deleted successfully!") }
+            vm.resetDeleteStatus()
+        }
+        state.deleteError?.let {
+            scope.launch { snackbarHostState.showSnackbar("Error deleting quote: $it") }
+            vm.resetDeleteStatus()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mis Cotizaciones") },
+                title = { Text("My Quotes") },
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -53,70 +73,80 @@ fun ProjectsScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isLoadingCarts) {
+            if (state.isLoadingCarts || state.isDeleting) {
                 CircularProgressIndicator()
             } else if (state.cartsError != null) {
-                Text(
-                    text = "Error: ${state.cartsError}",
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
+                Text("Error: ${state.cartsError}", color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
             } else if (state.carts.isEmpty()) {
                 Text("You don't have any quotes yet.", style = MaterialTheme.typography.bodyLarge)
             } else {
-                CartsList(carts = state.carts)
+                CartsList(
+                    carts = state.carts,
+                    onDeleteClick = {
+                        cartToDelete = it
+                        showDeleteDialog = true
+                    }
+                )
             }
         }
+    }
+
+    // --- Confirmation Dialog for Deletion ---
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            cartName = cartToDelete?.name ?: "",
+            onConfirm = {
+                cartToDelete?.let { vm.deleteCart(it.id.toLong()) }
+                showDeleteDialog = false
+                cartToDelete = null
+            },
+            onDismiss = {
+                showDeleteDialog = false
+                cartToDelete = null
+            }
+        )
     }
 }
 
 @Composable
-private fun CartsList(carts: List<Cart>) {
+private fun CartsList(carts: List<Cart>, onDeleteClick: (Cart) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(carts) { cart ->
-            ExpandableCartCard(cart = cart)
+            ExpandableCartCard(cart = cart, onDeleteClick = { onDeleteClick(cart) })
         }
     }
 }
 
 @Composable
-private fun ExpandableCartCard(cart: Cart) {
+private fun ExpandableCartCard(cart: Cart, onDeleteClick: () -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth().animateContentSize(), // Smoothly animates size changes
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.clickable { isExpanded = !isExpanded }.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.clickable { isExpanded = !isExpanded }.padding(16.dp)) {
             Text(text = cart.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             cart.description?.let {
                 Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(8.dp))
-            // CORRECTED: Changed text and calculation to show the number of *distinct* products.
             Text(text = "Productos distintos: ${cart.cartItems.size}", style = MaterialTheme.typography.bodySmall)
 
             if (isExpanded) {
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
-                
                 Text(text = "Productos:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
-                
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    cart.cartItems.forEach { cartItem ->
-                        CartProductItem(cartItem)
-                    }
+                    cart.cartItems.forEach { CartProductItem(it) }
                 }
-
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                    TextButton(onClick = { /* TODO: Handle delete */ }) {
+                    TextButton(onClick = onDeleteClick) {
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Delete")
@@ -147,9 +177,30 @@ private fun CartProductItem(item: CartItem) {
             Text(item.product.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
             Text("$${item.product.price}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
         }
-        // This will likely show "Qty: 0" due to the backend issue, which is fine for now.
         Text("Qty: ${item.quantity}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
     }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(cartName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirm Deletion") },
+        text = { Text("Are you sure you want to delete the quote \"$cartName\"? This action cannot be undone.") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 

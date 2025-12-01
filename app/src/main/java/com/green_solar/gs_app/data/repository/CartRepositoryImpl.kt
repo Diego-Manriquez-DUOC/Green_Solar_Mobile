@@ -4,7 +4,6 @@ import com.green_solar.gs_app.core.utils.toDomain
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.remote.dto.CartCreateRequest
-import com.green_solar.gs_app.data.remote.dto.CartItemCreateRequest
 import com.green_solar.gs_app.data.remote.dto.CartUpdateRequest
 import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.repository.CartRepository
@@ -24,18 +23,20 @@ class CartRepositoryImpl(
         api.getCart("Bearer $token", cartId).toDomain()
     }
 
+    /**
+     * Creates a cart by sending only the product IDs, as required by the backend DTO.
+     * The quantity information from the UI is disregarded at creation time.
+     */
     override suspend fun createCart(name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
         if (items.isEmpty()) {
             throw IllegalArgumentException("Cannot create a cart with no products.")
         }
         val token = session.getToken() ?: throw Exception("User not authenticated")
 
-        val requestItems = items.map { (productId, quantity) ->
-            CartItemCreateRequest(id = productId, quantity = quantity)
-        }
+        // Extract only the product IDs (keys from the map) to match the backend DTO.
+        val productIds = items.keys.toList()
 
-        // LAST ATTEMPT: Using positional arguments instead of named arguments.
-        val request = CartCreateRequest(name, description, requestItems)
+        val request = CartCreateRequest(name = name, description = description, productIds = productIds)
         api.createCart("Bearer $token", request).toDomain()
     }
 

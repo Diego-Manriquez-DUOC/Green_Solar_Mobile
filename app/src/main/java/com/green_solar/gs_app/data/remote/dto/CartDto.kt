@@ -1,29 +1,25 @@
 package com.green_solar.gs_app.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.green_solar.gs_app.domain.model.ProductCategory
 
 // --- Requests --- //
 
 /**
- * Represents a single item to be included when creating a cart.
- */
-data class CartItemCreateRequest(
-    @SerializedName("id") val id: Long,
-    @SerializedName("quantity") val quantity: Int
-)
-
-/**
  * DTO for creating a new Cart.
- * CORRECTED: The property name in the class MUST match the one used in the repository.
+ * CORRECTED to exactly match the backend's CartCreateRequestDTO record.
+ * It only accepts a list of product IDs, not quantities.
  */
 data class CartCreateRequest(
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String?,
-    // The JSON field is 'cartItems', and now the Kotlin property is also 'cartItems'.
-    @SerializedName("cartItems") val cartItems: List<CartItemCreateRequest> = emptyList()
+    @SerializedName("productIds") val productIds: List<Long>
 )
 
-
+/**
+ * DTO for updating a Cart.
+ * CORRECTED to exactly match the backend's CartUpdateRequestDTO record.
+ */
 data class CartUpdateRequest(
     @SerializedName("name") val name: String?,
     @SerializedName("description") val description: String?,
@@ -33,6 +29,10 @@ data class CartUpdateRequest(
 
 // --- Responses --- //
 
+/**
+ * DTO for a single item in a cart response.
+ * Verified to match the backend's CartItemResponseDTO record.
+ */
 data class CartItemResponseDTO(
     @SerializedName("id") val id: Long,
     @SerializedName("quantity") val quantity: Int,
@@ -41,11 +41,12 @@ data class CartItemResponseDTO(
 
 /**
  * DTO for the full Cart response from the API.
+ * Verified to match the backend's CartResponseDTO record.
  */
 data class CartResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String?,
-    @SerializedName("user_id") val userId: Long,
-    @SerializedName("cartItems") val cartItems: List<CartItemResponseDTO>?
+    @SerializedName("userId") val userId: Long, // Note: Backend is userId, mapping it here.
+    @SerializedName("items") val items: List<CartItemResponseDTO>?
 )

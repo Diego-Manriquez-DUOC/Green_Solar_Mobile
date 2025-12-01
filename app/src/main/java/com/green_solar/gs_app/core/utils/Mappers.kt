@@ -9,10 +9,6 @@ import com.green_solar.gs_app.domain.model.CartItem
 import com.green_solar.gs_app.domain.model.Product
 import com.green_solar.gs_app.domain.model.User
 
-/**
- * Maps a UserDto to a User domain model.
- * CORRECTED: Uses the new camelCase properties (userId, imgUrl) from the DTO.
- */
 fun UserDto.toDomain(): User {
     return User(
         user_id = this.user_id,
@@ -23,9 +19,6 @@ fun UserDto.toDomain(): User {
     )
 }
 
-/**
- * Maps a ProductResponseDTO (from API) to a Product domain model (clean).
- */
 fun ProductResponseDTO.toDomain(): Product {
     return Product(
         id = this.id,
@@ -39,26 +32,23 @@ fun ProductResponseDTO.toDomain(): Product {
     )
 }
 
-/**
- * Maps a CartItemResponseDTO (from API) to a CartItem domain model (clean).
- */
 fun CartItemResponseDTO.toDomain(): CartItem {
     return CartItem(
         id = this.id,
         quantity = this.quantity,
-        product = this.product.toDomain() // Reuse the existing product mapper
+        product = this.product.toDomain()
     )
 }
 
 /**
  * Maps a CartResponse (from API) to a Cart domain model (clean).
+ * REVERTED: The DTO property from the API response is 'items'.
  */
 fun CartResponse.toDomain(): Cart {
     return Cart(
         id = this.id.toString(),
         name = this.name,
         description = this.description,
-        // Safely map the items, handling potential null list from API
-        cartItems = this.cartItems?.map { it.toDomain() } ?: emptyList()
+        cartItems = this.items?.map { it.toDomain() } ?: emptyList()
     )
 }
