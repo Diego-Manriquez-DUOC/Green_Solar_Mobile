@@ -1,4 +1,4 @@
-package com.green_solar.gs_app.ui.components.cotizacion
+package com.green_solar.gs_app.ui.components.cart
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

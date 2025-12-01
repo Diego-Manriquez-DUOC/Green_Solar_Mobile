@@ -15,35 +15,37 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
 
     override suspend fun login(email: String, password: String): Result<User> = runCatching {
-        // 1. Autenticar y obtener el token
+        // 1. Authenticate and get token
         val authResponse = api.login(LoginRequest(email, password))
         val token = authResponse.token
 
-        // 2. Usar el token para obtener los datos completos del usuario
+        // 2. Use token to get full user data
         val meResponse = api.getCurrentUser("Bearer $token")
 
-        // 3. Combinar respuestas para crear el usuario de dominio
+        // 3. Combine responses to create domain User
         val user = mapToDomain(authResponse, meResponse)
 
-        // 4. Guardar el token en la sesión
+        // 4. Save session data
         session.saveToken(token)
+        session.saveUserId(authResponse.id) // <-- PASO CLAVE AÑADIDO
 
         user
     }
 
     override suspend fun signup(name: String, email: String, password: String): Result<User> = runCatching {
-        // 1. Registrar y obtener el token
+        // 1. Register and get token
         val authResponse = api.signup(SignupRequest(name, email, password))
         val token = authResponse.token
 
-        // 2. Usar el token para obtener los datos completos del usuario
+        // 2. Use token to get full user data
         val meResponse = api.getCurrentUser("Bearer $token")
 
-        // 3. Combinar respuestas para crear el usuario de dominio
+        // 3. Combine responses to create domain User
         val user = mapToDomain(authResponse, meResponse)
 
-        // 4. Guardar el token en la sesión
+        // 4. Save session data
         session.saveToken(token)
+        session.saveUserId(authResponse.id) // <-- PASO CLAVE AÑADIDO
 
         user
     }
@@ -52,15 +54,12 @@ class AuthRepositoryImpl(
         session.clear()
     }
 
-    /**
-     * Función privada que mapea las respuestas de la API a un objeto User de dominio.
-     */
     private fun mapToDomain(auth: AuthResponse, me: MeResponse): User {
         return User(
-            user_id = auth.id.toString(), // Convertimos el Long a String
-            name = auth.username,           // Usamos el username de la respuesta de autenticación
-            email = me.email,               // Usamos el email de la respuesta /me
-            role = me.role,                 // Usamos el rol de la respuesta /me
+            user_id = auth.id.toString(),
+            name = auth.username,
+            email = me.email,
+            role = me.role,
             img_url = auth.imgUrl
         )
     }

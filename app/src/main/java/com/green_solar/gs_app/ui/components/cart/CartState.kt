@@ -1,4 +1,4 @@
-package com.green_solar.gs_app.ui.components.cotizacion
+package com.green_solar.gs_app.ui.components.cart
 
 import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.model.Product

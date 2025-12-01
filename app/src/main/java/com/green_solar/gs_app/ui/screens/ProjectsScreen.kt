@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,32 +23,26 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.green_solar.gs_app.domain.model.Cotizacion
-import com.green_solar.gs_app.ui.components.cotizacion.CotizacionViewModel
-import com.green_solar.gs_app.ui.components.cotizacion.CotizacionViewModelFactory
-
+import com.green_solar.gs_app.domain.model.Cart
+// CORRECTED IMPORTS
+import com.green_solar.gs_app.ui.components.cart.CartViewModelFactory
+import com.green_solar.gs_app.ui.components.cart.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectsScreen(
     nav: NavController,
-    // Usamos el CotizacionViewModel para obtener la lista de cotizaciones
-    vm: CotizacionViewModel = viewModel(factory = CotizacionViewModelFactory(LocalContext.current))
+    vm: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current))
 ) {
     val state by vm.state.collectAsState()
-
-    // Cuando la pantalla se muestre, cargamos la lista de cotizaciones
-    LaunchedEffect(Unit) {
-        vm.loadCotizaciones()
-    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Cotizaciones") },
+                title = { Text("My Carts") },
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
             )
@@ -61,37 +54,37 @@ fun ProjectsScreen(
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isLoadingCotizaciones) {
+            if (state.isLoadingCarts) {
                 CircularProgressIndicator()
-            } else if (state.cotizacionesError != null) {
+            } else if (state.cartsError != null) {
                 Text(
-                    text = "Error: ${state.cotizacionesError}",
+                    text = "Error: ${state.cartsError}",
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
-            } else if (state.cotizaciones.isEmpty()) {
-                Text("Aún no tienes cotizaciones.")
+            } else if (state.carts.isEmpty()) {
+                Text("You don't have any carts yet.")
             } else {
-                CotizacionesList(cotizaciones = state.cotizaciones)
+                CartsList(carts = state.carts)
             }
         }
     }
 }
 
 @Composable
-private fun CotizacionesList(cotizaciones: List<Cotizacion>) {
+private fun CartsList(carts: List<Cart>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
-        items(cotizaciones) {
-            CotizacionItem(cotizacion = it)
+        items(carts) { cart ->
+            CartListItem(cart = cart)
         }
     }
 }
 
 @Composable
-private fun CotizacionItem(cotizacion: Cotizacion) {
+private fun CartListItem(cart: Cart) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,8 +92,11 @@ private fun CotizacionItem(cotizacion: Cotizacion) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = cotizacion.nombre, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Productos: ${cotizacion.productos.size}", style = MaterialTheme.typography.bodySmall)
+            Text(text = cart.name, style = MaterialTheme.typography.titleMedium)
+            cart.description?.let {
+                Text(text = it, style = MaterialTheme.typography.bodySmall)
+            }
+            Text(text = "Items: ${cart.cartItems.size}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

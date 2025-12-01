@@ -18,6 +18,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.green_solar.gs_app.data.local.SessionManager
+import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.repository.AuthRepositoryImpl
 import com.green_solar.gs_app.data.repository.UserRepositoryImpl
 import com.green_solar.gs_app.ui.components.auth.SignupVMFactory
@@ -27,8 +29,9 @@ import com.green_solar.gs_app.ui.components.login.LoginViewModel
 import com.green_solar.gs_app.ui.components.profile.ProfileVMFactory
 import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
 import com.green_solar.gs_app.ui.screens.*
-import com.green_solar.gs_app.data.local.SessionManager
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 object Routes {
     const val Splash = "splash"
@@ -48,6 +51,22 @@ fun AppNav() {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    // --- CENTRALIZED DEPENDENCY CREATION ---
+    // These are created once and remembered across recompositions.
+    val sessionManager = remember { SessionManager(ctx) }
+
+    val apiService = remember {
+        Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/") // Replace with your actual base URL
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+
+    val authRepo = remember { AuthRepositoryImpl(apiService, sessionManager) }
+    val userRepo = remember { UserRepositoryImpl(apiService, sessionManager, ctx) }
+    // --- END OF DEPENDENCIES ---
+
     NavHost(
         navController = nav,
         startDestination = Routes.Splash,
@@ -59,7 +78,7 @@ fun AppNav() {
 
         composable(Routes.Splash) {
             LaunchedEffect(Unit) {
-                val hasToken = SessionManager(ctx).hasToken()
+                val hasToken = sessionManager.hasToken() // Use the centralized instance
                 val dest = if (hasToken) Routes.Main else Routes.Login
                 nav.navigate(dest) {
                     popUpTo(Routes.Splash) { inclusive = true }
@@ -72,7 +91,7 @@ fun AppNav() {
         }
 
         composable(Routes.Login) {
-            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            // The authRepo is already created above. We just pass it to the factory.
             val vm: LoginViewModel = viewModel(factory = LoginVMFactory(authRepo))
 
             LoginScreen(
@@ -88,7 +107,7 @@ fun AppNav() {
         }
 
         composable(Routes.SignUp) {
-            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            // Pass the centralized authRepo to the factory.
             val vm: SignupViewModel = viewModel(factory = SignupVMFactory(authRepo))
 
             SignupScreen(
@@ -105,8 +124,7 @@ fun AppNav() {
 
         composable(Routes.Profile) {
             val app = ctx.applicationContext as Application
-            val userRepo = remember(ctx) { UserRepositoryImpl(ctx) }
-            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            // Pass the centralized repos to the factory.
             val vm: ProfileViewModel = viewModel(factory = ProfileVMFactory(app, userRepo, authRepo))
 
             ProfileScreen(
@@ -117,15 +135,14 @@ fun AppNav() {
 
         composable(Routes.Main) {
             val app = ctx.applicationContext as Application
-            val userRepo = remember(ctx) { UserRepositoryImpl(ctx) }
-            val authRepo = remember(ctx) { AuthRepositoryImpl(ctx) }
+            // Pass the centralized repos to the factory.
             val profileViewModel: ProfileViewModel = viewModel(factory = ProfileVMFactory(app, userRepo, authRepo))
 
             MainScreen(
                 nav = nav,
                 onLogout = {
                     scope.launch {
-                        authRepo.logout()
+                        authRepo.logout() // Use the centralized repo
                         nav.navigate(Routes.Login) {
                             popUpTo(nav.graph.id) { inclusive = true }
                             launchSingleTop = true
@@ -145,10 +162,9 @@ fun AppNav() {
         }
 
         composable(Routes.Quote) {
-            QuoteScreen(nav = nav)
+            CartScreen(nav = nav)
         }
 
-        // Conectando la nueva pantalla de Admin
         composable(Routes.ManageProducts) {
             ManageProductsScreen(nav = nav)
         }

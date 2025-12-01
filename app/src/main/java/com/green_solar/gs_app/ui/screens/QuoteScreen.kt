@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.green_solar.gs_app.domain.model.Product
-import com.green_solar.gs_app.ui.components.cotizacion.CartViewModel
-import com.green_solar.gs_app.ui.components.cotizacion.CartViewModelFactory
+import com.green_solar.gs_app.ui.components.cart.CartViewModel
+import com.green_solar.gs_app.ui.components.cart.CartViewModelFactory
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

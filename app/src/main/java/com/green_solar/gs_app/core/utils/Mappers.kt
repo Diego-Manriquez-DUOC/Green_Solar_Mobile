@@ -9,6 +9,9 @@ import com.green_solar.gs_app.domain.model.CartItem
 import com.green_solar.gs_app.domain.model.Product
 import com.green_solar.gs_app.domain.model.User
 
+/**
+ * Maps a UserDto to a User domain model.
+ */
 fun UserDto.toDomain(): User {
     return User(
         user_id = this.user_id,
@@ -19,6 +22,9 @@ fun UserDto.toDomain(): User {
     )
 }
 
+/**
+ * Maps a ProductResponseDTO (from API) to a Product domain model (clean).
+ */
 fun ProductResponseDTO.toDomain(): Product {
     return Product(
         id = this.id,
@@ -45,13 +51,12 @@ fun CartItemResponseDTO.toDomain(): CartItem {
 
 /**
  * Maps a CartResponse (from API) to a Cart domain model (clean).
- * It now internally uses the CartItem mapper to convert the list.
  */
 fun CartResponse.toDomain(): Cart {
     return Cart(
-        id = this.id.toString(), // Converting Long to String for the domain model
+        id = this.id.toString(),
         name = this.name,
         description = this.description,
-        cartItems = this.cartItems.map { it.toDomain() } // Corrected: use cartItems
+        cartItems = this.cartItems.map { it.toDomain() }
     )
 }
