@@ -7,24 +7,19 @@ data class LoginRequest(val email: String, val password: String)
 data class SignupRequest(
     val name: String, 
     val email: String, 
-    val password: String,
-    val role: String? = null // Será "USER" por defecto
+    val password: String
 )
 
 // Lo que devuelve el api en login
-data class LoginResponseDto(
-    val access_token: String,
-    val message: String,
-    val user: UserDto
+data class AuthResponse(
+    val id : Long,
+    val token : String,
+    val username : String,
+    val imgUrl : String?
 )
-
-// 2. Quitamos el "role" de aquí, porque ya viene dentro de "user".
-data class SignupResponseDto(
-    val access_token: String,
-    val message: String,
-    val user: UserDto 
-)
-
 data class MeResponse(
-    val user: UserDto
+    val username : String,
+    val role : String,
+    val email : String,
+    val imgUrl : String?
 )

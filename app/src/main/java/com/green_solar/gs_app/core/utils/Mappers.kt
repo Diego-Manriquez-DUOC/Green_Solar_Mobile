@@ -1,15 +1,14 @@
 package com.green_solar.gs_app.core.utils
 
-import com.green_solar.gs_app.data.remote.dto.CotizacionDto
-import com.green_solar.gs_app.data.remote.dto.ProductoDto
+import com.green_solar.gs_app.data.remote.dto.CartItemResponseDTO
+import com.green_solar.gs_app.data.remote.dto.CartResponse
+import com.green_solar.gs_app.data.remote.dto.ProductResponseDTO
 import com.green_solar.gs_app.data.remote.dto.UserDto
-import com.green_solar.gs_app.domain.model.Cotizacion
-import com.green_solar.gs_app.domain.model.Producto
+import com.green_solar.gs_app.domain.model.Cart
+import com.green_solar.gs_app.domain.model.CartItem
+import com.green_solar.gs_app.domain.model.Product
 import com.green_solar.gs_app.domain.model.User
 
-/**
- * Mapea un UserDto a un User de dominio.
- */
 fun UserDto.toDomain(): User {
     return User(
         user_id = this.user_id,
@@ -20,29 +19,39 @@ fun UserDto.toDomain(): User {
     )
 }
 
-/**
- * Mapea un ProductoDto (de la API) a un Producto de dominio (limpio).
- */
-fun ProductoDto.toDomain(): Producto {
-    return Producto(
-        id = this.productId,
-        nombre = this.nombre,
-        descripcion = this.descripcion,
-        precio = this.precio,
-        categoria = this.categoria,
-        produccionKwz = this.produccion
+fun ProductResponseDTO.toDomain(): Product {
+    return Product(
+        id = this.id,
+        name = this.name,
+        desc = this.desc,
+        price = this.price,
+        category = this.category,
+        storageKW = this.storageKW,
+        productionKW = this.productionKW,
+        imgUrl = this.imgUrl
     )
 }
 
 /**
- * Mapea un CotizacionDto (de la API) a una Cotizacion de dominio (limpia).
- * Internamente, usa el mapper de Producto para convertir la lista.
+ * Maps a CartItemResponseDTO (from API) to a CartItem domain model (clean).
  */
-fun CotizacionDto.toDomain(): Cotizacion {
-    return Cotizacion(
-        id = this.cotizacionId,
-        nombre = this.nombre,
-        descripcion = this.descripcion,
-        productos = this.productos.map { it.toDomain() } // Mapea cada producto de la lista
+fun CartItemResponseDTO.toDomain(): CartItem {
+    return CartItem(
+        id = this.id,
+        quantity = this.quantity,
+        product = this.product.toDomain() // Reuse the existing product mapper
+    )
+}
+
+/**
+ * Maps a CartResponse (from API) to a Cart domain model (clean).
+ * It now internally uses the CartItem mapper to convert the list.
+ */
+fun CartResponse.toDomain(): Cart {
+    return Cart(
+        id = this.id.toString(), // Converting Long to String for the domain model
+        name = this.name,
+        description = this.description,
+        cartItems = this.cartItems.map { it.toDomain() } // Corrected: use cartItems
     )
 }

@@ -15,32 +15,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.green_solar.gs_app.domain.model.Cotizacion
-import com.green_solar.gs_app.domain.model.Producto
-import com.green_solar.gs_app.ui.components.cotizacion.CotizacionViewModel
-import com.green_solar.gs_app.ui.components.cotizacion.CotizacionViewModelFactory
+import com.green_solar.gs_app.domain.model.Product
+import com.green_solar.gs_app.ui.components.cotizacion.CartViewModel
+import com.green_solar.gs_app.ui.components.cotizacion.CartViewModelFactory
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuoteScreen(
+fun CartScreen(
     nav: NavController,
-    vm: CotizacionViewModel = viewModel(factory = CotizacionViewModelFactory(LocalContext.current))
+    vm: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current))
 ) {
     val state by vm.state.collectAsState()
-    var selectedProducts by remember { mutableStateOf<Set<Producto>>(emptySet()) }
+    var selectedProducts by remember { mutableStateOf<Set<Product>>(emptySet()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Efecto para mostrar el Snackbar cuando la creación es exitosa o falla
     LaunchedEffect(state.creationSuccess, state.creationError) {
         if (state.creationSuccess) {
             scope.launch {
-                snackbarHostState.showSnackbar("¡Cotización creada con éxito!")
+                snackbarHostState.showSnackbar("Cart created successfully!")
             }
             vm.resetCreationStatus()
-            selectedProducts = emptySet() // Limpiar selección
+            selectedProducts = emptySet() // Clear selection
         }
         state.creationError?.let {
             scope.launch {
@@ -54,10 +51,10 @@ fun QuoteScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Crear Nueva Cotización") },
+                title = { Text("Create New Cart") },
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -66,15 +63,14 @@ fun QuoteScreen(
             if (selectedProducts.isNotEmpty()) {
                 ExtendedFloatingActionButton(
                     icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    text = { Text("Crear Cotización") },
+                    text = { Text("Create Cart") },
                     onClick = {
-                        val newCotizacion = Cotizacion(
-                            id = UUID.randomUUID().toString(), // ID temporal, el backend lo genera
-                            nombre = "Nueva Cotización", // Podríamos pedirlo en un dialogo
-                            descripcion = "Creada desde la app",
-                            productos = selectedProducts.toList()
+                        val productIds = selectedProducts.map { it.id }
+                        vm.createCart(
+                            name = "New Cart from App", // A dialog could be shown for this
+                            description = "Created on ${java.util.Date()}",
+                            productIds = productIds
                         )
-                        vm.createCotizacion(newCotizacion)
                     }
                 )
             }
@@ -84,17 +80,17 @@ fun QuoteScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isLoadingProductos) {
+            if (state.isLoadingProducts) {
                 CircularProgressIndicator()
-            } else if (state.productosError != null) {
+            } else if (state.productsError != null) {
                 Text(
-                    text = "Error al cargar productos: ${state.productosError}",
+                    text = "Error loading products: ${state.productsError}",
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
             } else {
                 ProductList(
-                    products = state.productos,
+                    products = state.products,
                     selectedProducts = selectedProducts,
                     onProductSelected = {
                         selectedProducts = if (it in selectedProducts) {
@@ -111,9 +107,9 @@ fun QuoteScreen(
 
 @Composable
 private fun ProductList(
-    products: List<Producto>,
-    selectedProducts: Set<Producto>,
-    onProductSelected: (Producto) -> Unit
+    products: List<Product>,
+    selectedProducts: Set<Product>,
+    onProductSelected: (Product) -> Unit
 ) {
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         items(products) {
@@ -123,7 +119,7 @@ private fun ProductList(
 }
 
 @Composable
-private fun ProductItem(product: Producto, isSelected: Boolean, onProductSelected: (Producto) -> Unit) {
+private fun ProductItem(product: Product, isSelected: Boolean, onProductSelected: (Product) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -136,8 +132,10 @@ private fun ProductItem(product: Producto, isSelected: Boolean, onProductSelecte
         )
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(product.nombre, style = MaterialTheme.typography.bodyLarge)
-            Text(product.descripcion, style = MaterialTheme.typography.bodySmall)
+            Text(product.name, style = MaterialTheme.typography.bodyLarge)
+            product.desc?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

@@ -2,9 +2,8 @@ package com.green_solar.gs_app.ui.components.cotizacion
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.green_solar.gs_app.domain.model.Cotizacion
-import com.green_solar.gs_app.domain.repository.CotizacionRepository
-import com.green_solar.gs_app.domain.repository.ProductoRepository
+import com.green_solar.gs_app.domain.repository.CartRepository
+import com.green_solar.gs_app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,50 +11,57 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel para la pantalla de Cotización.
- * Versión simplificada: Llama a los repositorios directamente.
+ * ViewModel for the Cart screen.
  */
-class CotizacionViewModel(
-    private val productoRepository: ProductoRepository,
-    private val cotizacionRepository: CotizacionRepository
+class CartViewModel(
+    private val productRepository: ProductRepository,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(CotizacionState())
-    val state: StateFlow<CotizacionState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(CartState())
+    val state: StateFlow<CartState> = _state.asStateFlow()
 
-    fun loadProductos() {
+    init {
+        loadAvailableProducts()
+        loadUserCarts()
+    }
+
+    fun loadAvailableProducts() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingProductos = true) }
-            try {
-                val productos = productoRepository.getProductos()
-                _state.update { it.copy(isLoadingProductos = false, productos = productos) }
-            } catch (e: Exception) {
-                _state.update { it.copy(isLoadingProductos = false, productosError = e.message) }
-            }
+            _state.update { it.copy(isLoadingProducts = true) }
+            productRepository.getAllProducts()
+                .onSuccess {
+                    products -> _state.update { it.copy(isLoadingProducts = false, products = products) }
+                }
+                .onFailure {
+                    error -> _state.update { it.copy(isLoadingProducts = false, productsError = error.message) }
+                }
         }
     }
 
-    fun loadCotizaciones() {
+    fun loadUserCarts() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoadingCotizaciones = true) }
-            try {
-                val cotizaciones = cotizacionRepository.getCotizaciones()
-                _state.update { it.copy(isLoadingCotizaciones = false, cotizaciones = cotizaciones) }
-            } catch (e: Exception) {
-                _state.update { it.copy(isLoadingCotizaciones = false, cotizacionesError = e.message) }
-            }
+            _state.update { it.copy(isLoadingCarts = true) }
+            cartRepository.getUserCarts()
+                .onSuccess { 
+                    carts -> _state.update { it.copy(isLoadingCarts = false, carts = carts) }
+                }
+                .onFailure { 
+                    error -> _state.update { it.copy(isLoadingCarts = false, cartsError = error.message) }
+                }
         }
     }
 
-    fun createCotizacion(cotizacion: Cotizacion) {
+    fun createCart(name: String, description: String?, productIds: List<Long>) {
         viewModelScope.launch {
             _state.update { it.copy(isCreating = true, creationSuccess = false, creationError = null) }
-            try {
-                cotizacionRepository.createCotizacion(cotizacion)
-                _state.update { it.copy(isCreating = false, creationSuccess = true) }
-            } catch (e: Exception) {
-                _state.update { it.copy(isCreating = false, creationError = e.message) }
-            }
+            cartRepository.createCart(name, description, productIds)
+                .onSuccess { 
+                    _state.update { it.copy(isCreating = false, creationSuccess = true) } 
+                }
+                .onFailure { 
+                    error -> _state.update { it.copy(isCreating = false, creationError = error.message) }
+                }
         }
     }
 

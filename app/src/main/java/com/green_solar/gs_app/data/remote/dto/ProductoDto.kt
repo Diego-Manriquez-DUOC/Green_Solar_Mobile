@@ -1,26 +1,66 @@
 package com.green_solar.gs_app.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
+import com.green_solar.gs_app.domain.model.ProductCategory
 
 /**
- * Data Transfer Object para un Producto, tal como viene de la API.
+ * DTO for creating a new Product.
  */
-data class ProductoDto(
-    @SerializedName("product_id")
-    val productId: String,
-
-    @SerializedName("nombre")
-    val nombre: String,
-
+data class ProductCreateRequest(
+    @SerializedName("name")
+    val name: String,
     @SerializedName("desc")
-    val descripcion: String,
-
+    val desc: String?,
     @SerializedName("price")
-    val precio: Double,
-
+    val price: Int,
     @SerializedName("category")
-    val categoria: String,
+    val category: ProductCategory,
+    @SerializedName("storageKW")
+    val storageKW: Int,
+    @SerializedName("productionKW")
+    val productionKW: Int,
+    @SerializedName("imgUrl")
+    val imgUrl: String?
+)
 
-    @SerializedName("produccion")
-    val produccion: Double
+/**
+ * DTO for updating an existing Product.
+ */
+data class ProductUpdateRequest(
+    @SerializedName("name")
+    val name: String?,
+    @SerializedName("desc")
+    val desc: String?,
+    @SerializedName("price")
+    val price: Int?,
+    @SerializedName("category")
+    val category: ProductCategory?,
+    @SerializedName("storageKW")
+    val storageKW: Int?,
+    @SerializedName("productionKW")
+    val productionKW: Int?,
+    @SerializedName("imgUrl")
+    val imgUrl: String?
+)
+
+/**
+ * DTO for the Product response from the API.
+ */
+data class ProductResponseDTO(
+    @SerializedName("id")
+    val id: Long,
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("desc")
+    val desc: String?,
+    @SerializedName("price")
+    val price: Int,
+    @SerializedName("category")
+    val category: ProductCategory,
+    @SerializedName("storageKW")
+    val storageKW: Int,
+    @SerializedName("productionKW")
+    val productionKW: Int,
+    @SerializedName("imgUrl")
+    val imgUrl: String?
 )
