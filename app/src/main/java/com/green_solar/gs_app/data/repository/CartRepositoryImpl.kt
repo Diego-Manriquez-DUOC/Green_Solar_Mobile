@@ -6,6 +6,8 @@ import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.remote.dto.CartCreateRequest
 import com.green_solar.gs_app.data.remote.dto.CartUpdateRequest
 import com.green_solar.gs_app.domain.model.Cart
+import com.green_solar.gs_app.domain.model.Product
+import com.green_solar.gs_app.domain.model.ProductCategory
 import com.green_solar.gs_app.domain.repository.CartRepository
 
 class CartRepositoryImpl(
@@ -23,19 +25,12 @@ class CartRepositoryImpl(
         api.getCart("Bearer $token", cartId).toDomain()
     }
 
-    /**
-     * Creates a cart by sending only the product IDs, as required by the backend DTO.
-     * The quantity information from the UI is disregarded at creation time.
-     */
     override suspend fun createCart(name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
         if (items.isEmpty()) {
             throw IllegalArgumentException("Cannot create a cart with no products.")
         }
         val token = session.getToken() ?: throw Exception("User not authenticated")
-
-        // Extract only the product IDs (keys from the map) to match the backend DTO.
         val productIds = items.keys.toList()
-
         val request = CartCreateRequest(name = name, description = description, productIds = productIds)
         api.createCart("Bearer $token", request).toDomain()
     }
@@ -52,5 +47,9 @@ class CartRepositoryImpl(
         if (!response.isSuccessful) {
             throw Exception("Failed to delete cart: ${response.errorBody()?.string()}")
         }
+    }
+
+    override suspend fun searchProducts(name: String?, category: ProductCategory?): Result<List<Product>> = runCatching {
+        api.searchProducts(name, category).map { it.toDomain() }
     }
 }

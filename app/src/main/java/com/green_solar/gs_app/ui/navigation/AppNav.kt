@@ -120,7 +120,7 @@ fun AppNav() {
         }
 
         composable(Routes.Quote) {
-            CartScreen(nav = nav)
+            CreateCotizacionScreen(nav = nav)
         }
 
         composable(Routes.ManageProducts) {

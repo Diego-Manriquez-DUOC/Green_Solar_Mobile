@@ -2,6 +2,7 @@ package com.green_solar.gs_app.ui.components.cart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.green_solar.gs_app.domain.model.ProductCategory
 import com.green_solar.gs_app.domain.repository.CartRepository
 import com.green_solar.gs_app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,15 @@ class CartViewModel(
         }
     }
 
+    fun searchProducts(name: String?, category: ProductCategory?) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingProducts = true, productsError = null) }
+            cartRepository.searchProducts(name, category)
+                .onSuccess { products -> _state.update { it.copy(isLoadingProducts = false, products = products) } }
+                .onFailure { error -> _state.update { it.copy(isLoadingProducts = false, productsError = error.message) } }
+        }
+    }
+
     fun loadUserCarts() {
         viewModelScope.launch {
             _state.update { it.copy(isLoadingCarts = true) }
@@ -53,7 +63,6 @@ class CartViewModel(
         }
     }
 
-    // --- Delete Functionality ---
     fun deleteCart(cartId: Long) {
         viewModelScope.launch {
             _state.update { it.copy(isDeleting = true, deleteSuccess = false, deleteError = null) }
