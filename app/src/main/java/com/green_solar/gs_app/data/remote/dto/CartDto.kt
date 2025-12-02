@@ -19,7 +19,7 @@ data class CartCreateRequest(
 data class CartUpdateRequest(
     @SerializedName("name") val name: String?,
     @SerializedName("description") val description: String?,
-    @SerializedName("items") val items: List<CartItemRequest>?
+    @SerializedName("productIds") val productIds: List<Long>?
 )
 
 

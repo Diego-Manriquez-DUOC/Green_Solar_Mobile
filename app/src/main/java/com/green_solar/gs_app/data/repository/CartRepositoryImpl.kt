@@ -38,12 +38,9 @@ class CartRepositoryImpl(
         api.createCart("Bearer $token", request).toDomain()
     }
 
-    override suspend fun updateCart(cartId: Long, name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
+    override suspend fun updateCart(cartId: Long, name: String, description: String?, items: List<Long>): Result<Cart> = runCatching {
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val requestItems = items.map { (productId, quantity) ->
-            CartItemRequest(productId, quantity)
-        }
-        val request = CartUpdateRequest(name, description, requestItems)
+        val request = CartUpdateRequest(name, description, items)
         api.updateCart("Bearer $token", cartId, request).toDomain()
     }
 

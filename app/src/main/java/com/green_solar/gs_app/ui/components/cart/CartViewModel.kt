@@ -33,7 +33,7 @@ class CartViewModel(
         }
     }
 
-    fun updateCart(cartId: Long, name: String, description: String?, items: Map<Long, Int>) {
+    fun updateCart(cartId: Long, name: String, description: String?, items: List<Long>) {
         viewModelScope.launch {
             _state.update { it.copy(isUpdating = true, updateSuccess = false, updateError = null) }
             cartRepository.updateCart(cartId, name, description, items)
