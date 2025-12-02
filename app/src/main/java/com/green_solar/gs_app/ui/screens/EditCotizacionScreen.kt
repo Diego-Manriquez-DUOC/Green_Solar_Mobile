@@ -124,11 +124,16 @@ fun EditCotizacionScreen(
                         }
                         return@ExtendedFloatingActionButton
                     }
+
+                    val productIds = itemsToUpdate.flatMap { (productId, quantity) ->
+                        List(quantity) { productId }
+                    }
+
                     vm.updateCart(
                         cartId = cotizacionId,
                         name = name.ifBlank { "Updated Quote" },
                         description = description.takeIf { it.isNotBlank() },
-                        items = itemsToUpdate
+                        items = productIds
                     )
                 },
                 icon = { Icon(Icons.Default.Add, contentDescription = "Update Quote") },
