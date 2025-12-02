@@ -7,6 +7,7 @@ import com.green_solar.gs_app.data.remote.dto.CartCreateRequest
 import com.green_solar.gs_app.data.remote.dto.CartItemRequest
 import com.green_solar.gs_app.data.remote.dto.CartUpdateRequest
 import com.green_solar.gs_app.domain.model.Cart
+import com.green_solar.gs_app.domain.model.CartItem
 import com.green_solar.gs_app.domain.model.Product
 import com.green_solar.gs_app.domain.model.ProductCategory
 import com.green_solar.gs_app.domain.repository.CartRepository
@@ -27,14 +28,21 @@ class CartRepositoryImpl(
     }
 
     override suspend fun createCart(name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
-        if (items.isEmpty()) {
-            throw IllegalArgumentException("Cannot create a cart with no products.")
+        if (items.isEmpty()) {throw IllegalArgumentException("Cannot create a cart with no products.")
         }
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val requestItems = items.map { (productId, quantity) ->
-            CartItemRequest(productId, quantity)
+
+
+        val productIdsList = items.flatMap { (productId, quantity) ->
+            List(quantity) { productId }
         }
-        val request = CartCreateRequest(name = name, description = description, items = requestItems)
+
+        val request = CartCreateRequest(
+            name = name,
+            description = description,
+            productIds = productIdsList
+        )
+
         api.createCart("Bearer $token", request).toDomain()
     }
 
@@ -42,6 +50,7 @@ class CartRepositoryImpl(
         val token = session.getToken() ?: throw Exception("User not authenticated")
         val request = CartUpdateRequest(name, description, items)
         api.updateCart("Bearer $token", cartId, request).toDomain()
+
     }
 
     override suspend fun deleteCart(cartId: Long): Result<Unit> = runCatching {

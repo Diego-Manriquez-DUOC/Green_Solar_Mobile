@@ -86,9 +86,23 @@ fun EditCotizacionScreen(
 
     LaunchedEffect(state.updateSuccess) {
         if (state.updateSuccess) {
-            scope.launch { snackbarHostState.showSnackbar("Quote updated successfully!") }
-            nav.popBackStack()
+            // Reseteamos el estado para que este bloque no se vuelva a ejecutar
             vm.resetUpdateStatus()
+            scope.launch {
+                snackbarHostState.showSnackbar("Espere porfavor....")
+                // Esperamos un poco para que el mensaje sea visible
+
+                delay(1500)
+                snackbarHostState.showSnackbar("Producto Actualizado.")
+
+                // Navegamos a la lista de cotizaciones, limpiando el historial hasta la
+                // pantalla "main". Esto fuerza el refresco de la lista.
+                nav.navigate("projects") {
+                    popUpTo("main") {
+                        inclusive = false
+                    }
+                }
+            }
         }
     }
 
@@ -103,7 +117,7 @@ fun EditCotizacionScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Edit Quote") },
+                title = { Text("Editar cotizacion") },
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -159,7 +173,7 @@ fun EditCotizacionScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Quote Name") },
+                label = { Text("Nombre de la cotizacion") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -168,7 +182,7 @@ fun EditCotizacionScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description (Optional)") },
+                label = { Text("Descripcion (Opcional)") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)

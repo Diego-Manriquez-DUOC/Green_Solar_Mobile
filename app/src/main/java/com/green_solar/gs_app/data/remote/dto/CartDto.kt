@@ -1,7 +1,6 @@
 package com.green_solar.gs_app.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
-import com.green_solar.gs_app.domain.model.ProductCategory
 
 // --- Requests -- //
 
@@ -13,7 +12,7 @@ data class CartItemRequest(
 data class CartCreateRequest(
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String?,
-    @SerializedName("items") val items: List<CartItemRequest>
+    @SerializedName("productIds") val productIds: List<Long>?
 )
 
 data class CartUpdateRequest(
