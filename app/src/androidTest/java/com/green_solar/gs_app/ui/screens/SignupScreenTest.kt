@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.green_solar.gs_app.domain.model.User
 import com.green_solar.gs_app.domain.repository.AuthRepository
-import com.green_solar.gs_app.ui.components.auth.SignupVMFactory
 import com.green_solar.gs_app.ui.components.auth.SignupViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -35,40 +34,40 @@ class SignupScreenTest {
 
     @Test
     fun `registro exitoso debe invocar el callback onRegistered`() {
-        // ARRANGE (Preparar el escenario)
+        // ARRANGE
         val testUser = User("2", "New User", "new@test.com", "USER", null)
         var onRegisteredCalled = false
         coEvery { mockAuthRepository.signup(any(), any(), any()) } returns Result.success(testUser)
 
         composeTestRule.setContent {
-            val viewModel: SignupViewModel = viewModel(factory = SignupVMFactory(mockAuthRepository))
+            val viewModel: SignupViewModel = viewModel { SignupViewModel(mockAuthRepository) }
             SignupScreen(
                 viewModel = viewModel,
                 onRegistered = { onRegisteredCalled = true },
-                onLoginClicked = { /* no-op */ }
+                onLoginClicked = { }
             )
         }
 
-        // ACT (Ejecutar la acción)
+        // ACT
         composeTestRule.onNodeWithText("Nombre").performTextInput("New User")
         composeTestRule.onNodeWithText("Email").performTextInput("new@test.com")
         composeTestRule.onNodeWithText("Contraseña").performTextInput("password123")
         composeTestRule.onNodeWithText("Repite contraseña").performTextInput("password123")
         composeTestRule.onNodeWithText("Registrarme").performClick()
 
-        // ASSERT (Verificar el resultado)
+        // ASSERT
         composeTestRule.waitUntil(5000) { onRegisteredCalled }
         assertTrue("El callback onRegistered debería haber sido llamado tras un registro exitoso", onRegisteredCalled)
     }
 
     @Test
     fun `registro fallido debe mostrar un mensaje de error`() {
-        // ARRANGE (Preparar el escenario)
+        // ARRANGE
         val errorMessage = "El email ya está en uso"
         coEvery { mockAuthRepository.signup(any(), any(), any()) } returns Result.failure(Exception(errorMessage))
 
         composeTestRule.setContent {
-            val viewModel: SignupViewModel = viewModel(factory = SignupVMFactory(mockAuthRepository))
+            val viewModel: SignupViewModel = viewModel { SignupViewModel(mockAuthRepository) }
             SignupScreen(
                 viewModel = viewModel,
                 onRegistered = { },
@@ -76,14 +75,14 @@ class SignupScreenTest {
             )
         }
 
-        // ACT (Ejecutar la acción)
+        // ACT
         composeTestRule.onNodeWithText("Nombre").performTextInput("New User")
         composeTestRule.onNodeWithText("Email").performTextInput("existing@test.com")
         composeTestRule.onNodeWithText("Contraseña").performTextInput("password123")
         composeTestRule.onNodeWithText("Repite contraseña").performTextInput("password123")
         composeTestRule.onNodeWithText("Registrarme").performClick()
 
-        // ASSERT (Verificar el resultado)
+        // ASSERT
         composeTestRule.onNodeWithText(errorMessage).assertIsDisplayed()
     }
 }

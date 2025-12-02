@@ -9,13 +9,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.green_solar.gs_app.domain.model.User
 import com.green_solar.gs_app.domain.repository.AuthRepository
-import com.green_solar.gs_app.ui.components.login.LoginVMFactory
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
 import io.mockk.coEvery
-import io.mockk.mockk
-import io.mockk.unmockkAll
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit4.MockKRule
 import junit.framework.TestCase.assertTrue
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,13 +24,11 @@ class LoginScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // RELAXED = evita errores porque el VM llama métodos al inicializarse
-    private val mockAuthRepository: AuthRepository = mockk(relaxed = true)
+    @get:Rule
+    val mockkRule = MockKRule(this)
 
-    @After
-    fun tearDown() {
-        unmockkAll()
-    }
+    @MockK
+    lateinit var mockAuthRepository: AuthRepository
 
     @Test
     fun `login exitoso debe invocar el callback onLoggedIn`() {
@@ -43,7 +39,7 @@ class LoginScreenTest {
         coEvery { mockAuthRepository.login(any(), any()) } returns Result.success(testUser)
 
         composeTestRule.setContent {
-            val viewModel: LoginViewModel = viewModel(factory = LoginVMFactory(mockAuthRepository))
+            val viewModel: LoginViewModel = viewModel { LoginViewModel(mockAuthRepository) }
             LoginScreen(
                 vm = viewModel,
                 onLoggedIn = { onLoggedInCalled = true },
@@ -70,7 +66,7 @@ class LoginScreenTest {
                 Result.failure(Exception(errorMessage))
 
         composeTestRule.setContent {
-            val viewModel: LoginViewModel = viewModel(factory = LoginVMFactory(mockAuthRepository))
+            val viewModel: LoginViewModel = viewModel { LoginViewModel(mockAuthRepository) }
             LoginScreen(
                 vm = viewModel,
                 onLoggedIn = { },
