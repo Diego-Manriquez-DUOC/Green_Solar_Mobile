@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.ui.components.auth.SignupVMFactory
 import com.green_solar.gs_app.ui.components.auth.SignupViewModel
@@ -33,6 +35,7 @@ object Routes {
     const val Projects = "projects"
     const val Monitoring = "monitoring"
     const val Quote = "quote"
+    const val EditQuote = "edit_quote"
     const val ManageProducts = "manage_products"
 }
 
@@ -111,8 +114,13 @@ fun AppNav() {
             )
         }
 
+        composable("${Routes.Projects}/{newCartId}", arguments = listOf(navArgument("newCartId") { type = NavType.IntType })) {
+            val newCartId = it.arguments?.getInt("newCartId")
+            ProjectsScreen(nav = nav, expandedCartId = newCartId)
+        }
+
         composable(Routes.Projects) {
-            ProjectsScreen(nav = nav)
+            ProjectsScreen(nav = nav, expandedCartId = null)
         }
 
         composable(Routes.Monitoring) {
@@ -121,6 +129,13 @@ fun AppNav() {
 
         composable(Routes.Quote) {
             CreateCotizacionScreen(nav = nav)
+        }
+
+        composable("${Routes.EditQuote}/{cotizacionId}", arguments = listOf(navArgument("cotizacionId") { type = NavType.LongType })) {
+            val cotizacionId = it.arguments?.getLong("cotizacionId")
+            cotizacionId?.let {
+                EditCotizacionScreen(nav = nav, cotizacionId = it)
+            }
         }
 
         composable(Routes.ManageProducts) {

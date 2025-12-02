@@ -4,6 +4,7 @@ import com.green_solar.gs_app.core.utils.toDomain
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.remote.ApiService
 import com.green_solar.gs_app.data.remote.dto.CartCreateRequest
+import com.green_solar.gs_app.data.remote.dto.CartItemRequest
 import com.green_solar.gs_app.data.remote.dto.CartUpdateRequest
 import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.model.Product
@@ -20,7 +21,7 @@ class CartRepositoryImpl(
         api.getUserCarts("Bearer $token").map { it.toDomain() }
     }
 
-    override suspend fun getCart(cartId: Long): Result<Cart> = runCatching {
+    override suspend fun getCartById(cartId: Long): Result<Cart> = runCatching {
         val token = session.getToken() ?: throw Exception("User not authenticated")
         api.getCart("Bearer $token", cartId).toDomain()
     }
@@ -30,14 +31,19 @@ class CartRepositoryImpl(
             throw IllegalArgumentException("Cannot create a cart with no products.")
         }
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val productIds = items.keys.toList()
-        val request = CartCreateRequest(name = name, description = description, productIds = productIds)
+        val requestItems = items.map { (productId, quantity) ->
+            CartItemRequest(productId, quantity)
+        }
+        val request = CartCreateRequest(name = name, description = description, items = requestItems)
         api.createCart("Bearer $token", request).toDomain()
     }
 
-    override suspend fun updateCart(cartId: Long, name: String?, description: String?, productIds: List<Long>?): Result<Cart> = runCatching {
+    override suspend fun updateCart(cartId: Long, name: String, description: String?, items: Map<Long, Int>): Result<Cart> = runCatching {
         val token = session.getToken() ?: throw Exception("User not authenticated")
-        val request = CartUpdateRequest(name, description, productIds ?: emptyList())
+        val requestItems = items.map { (productId, quantity) ->
+            CartItemRequest(productId, quantity)
+        }
+        val request = CartUpdateRequest(name, description, requestItems)
         api.updateCart("Bearer $token", cartId, request).toDomain()
     }
 

@@ -24,6 +24,27 @@ class CartViewModel(
         loadUserCarts()
     }
 
+    fun getCartById(cartId: Long) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingCarts = true, selectedCart = null) }
+            cartRepository.getCartById(cartId)
+                .onSuccess { cart -> _state.update { it.copy(isLoadingCarts = false, selectedCart = cart) } }
+                .onFailure { error -> _state.update { it.copy(isLoadingCarts = false, cartsError = error.message) } }
+        }
+    }
+
+    fun updateCart(cartId: Long, name: String, description: String?, items: Map<Long, Int>) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUpdating = true, updateSuccess = false, updateError = null) }
+            cartRepository.updateCart(cartId, name, description, items)
+                .onSuccess {
+                    _state.update { it.copy(isUpdating = false, updateSuccess = true) }
+                    loadUserCarts()
+                }
+                .onFailure { error -> _state.update { it.copy(isUpdating = false, updateError = error.message) } }
+        }
+    }
+
     fun loadAvailableProducts() {
         viewModelScope.launch {
             _state.update { it.copy(isLoadingProducts = true) }
@@ -53,10 +74,10 @@ class CartViewModel(
 
     fun createCart(name: String, description: String?, items: Map<Long, Int>) {
         viewModelScope.launch {
-            _state.update { it.copy(isCreating = true, creationSuccess = false, creationError = null) }
+            _state.update { it.copy(isCreating = true, creationSuccess = false, creationError = null, newlyCreatedCart = null) }
             cartRepository.createCart(name, description, items)
-                .onSuccess { 
-                    _state.update { it.copy(isCreating = false, creationSuccess = true) }
+                .onSuccess { newCart ->
+                    _state.update { it.copy(isCreating = false, creationSuccess = true, newlyCreatedCart = newCart) }
                     loadUserCarts() // Refresh the list after creation
                 }
                 .onFailure { error -> _state.update { it.copy(isCreating = false, creationError = error.message) } }
@@ -78,10 +99,14 @@ class CartViewModel(
     }
 
     fun resetCreationStatus() {
-        _state.update { it.copy(creationSuccess = false, creationError = null) }
+        _state.update { it.copy(creationSuccess = false, creationError = null, newlyCreatedCart = null) }
     }
 
     fun resetDeleteStatus() {
         _state.update { it.copy(deleteSuccess = false, deleteError = null) }
+    }
+
+    fun resetUpdateStatus() {
+        _state.update { it.copy(updateSuccess = false, updateError = null) }
     }
 }

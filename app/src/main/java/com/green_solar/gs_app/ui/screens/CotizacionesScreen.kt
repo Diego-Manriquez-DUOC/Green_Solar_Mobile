@@ -28,27 +28,26 @@ import com.green_solar.gs_app.domain.model.Cart
 import com.green_solar.gs_app.domain.model.CartItem
 import com.green_solar.gs_app.ui.components.cart.CartViewModel
 import com.green_solar.gs_app.ui.components.cart.CartViewModelFactory
+import com.green_solar.gs_app.ui.navigation.Routes
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectsScreen(
     nav: NavController,
+    expandedCartId: Int?,
     vm: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current))
 ) {
     val state by vm.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // --- State for Delete Dialog ---
     var showDeleteDialog by remember { mutableStateOf(false) }
     var cartToDelete by remember { mutableStateOf<Cart?>(null) }
 
-    // --- LaunchedEffect for Delete Operation ---
     LaunchedEffect(state.deleteSuccess, state.deleteError) {
         if (state.deleteSuccess) {
             scope.launch { snackbarHostState.showSnackbar("Quote deleted successfully!") }
-            // Add this line to refresh the list
             vm.loadUserCarts()
             vm.resetDeleteStatus()
         }
@@ -84,16 +83,19 @@ fun ProjectsScreen(
             } else {
                 CartsList(
                     carts = state.carts,
+                    expandedCartId = expandedCartId,
                     onDeleteClick = {
                         cartToDelete = it
                         showDeleteDialog = true
+                    },
+                    onEditClick = { cart ->
+                        nav.navigate("${Routes.EditQuote}/${cart.id}")
                     }
                 )
             }
         }
     }
 
-    // --- Confirmation Dialog for Deletion ---
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
             cartName = cartToDelete?.name ?: "",
@@ -111,27 +113,46 @@ fun ProjectsScreen(
 }
 
 @Composable
-private fun CartsList(carts: List<Cart>, onDeleteClick: (Cart) -> Unit) {
+private fun CartsList(
+    carts: List<Cart>,
+    onDeleteClick: (Cart) -> Unit,
+    onEditClick: (Cart) -> Unit,
+    expandedCartId: Int?,
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(carts) { cart ->
-            ExpandableCartCard(cart = cart, onDeleteClick = { onDeleteClick(cart) })
+            ExpandableCartCard(
+                cart = cart,
+                onDeleteClick = { onDeleteClick(cart) },
+                onEditClick = { onEditClick(cart) },
+                isInitiallyExpanded = cart.id.toIntOrNull() == expandedCartId
+            )
         }
     }
 }
 
 @Composable
-private fun ExpandableCartCard(cart: Cart, onDeleteClick: () -> Unit) {
-    var isExpanded by remember { mutableStateOf(false) }
+private fun ExpandableCartCard(
+    cart: Cart,
+    onDeleteClick: () -> Unit,
+    onEditClick: () -> Unit,
+    isInitiallyExpanded: Boolean = false
+) {
+    var isExpanded by remember { mutableStateOf(isInitiallyExpanded) }
 
     Card(
-        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.clickable { isExpanded = !isExpanded }.padding(16.dp)) {
+        Column(modifier = Modifier
+            .clickable { isExpanded = !isExpanded }
+            .padding(16.dp)) {
             Text(text = cart.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             cart.description?.let {
                 Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -154,7 +175,7 @@ private fun ExpandableCartCard(cart: Cart, onDeleteClick: () -> Unit) {
                         Text("Delete")
                     }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = { /* TODO: Handle edit */ }) {
+                    TextButton(onClick = onEditClick) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Edit")
@@ -172,7 +193,9 @@ private fun CartProductItem(item: CartItem) {
             model = item.product.imgUrl,
             contentDescription = item.product.name,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.small)
+            modifier = Modifier
+                .size(56.dp)
+                .clip(MaterialTheme.shapes.small)
         )
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -209,5 +232,5 @@ private fun DeleteConfirmationDialog(cartName: String, onConfirm: () -> Unit, on
 @Preview(showBackground = true)
 @Composable
 private fun ProjectsScreenPreview() {
-    ProjectsScreen(nav = rememberNavController())
+    ProjectsScreen(nav = rememberNavController(), expandedCartId = null)
 }

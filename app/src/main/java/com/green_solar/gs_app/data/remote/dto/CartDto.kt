@@ -3,27 +3,23 @@ package com.green_solar.gs_app.data.remote.dto
 import com.google.gson.annotations.SerializedName
 import com.green_solar.gs_app.domain.model.ProductCategory
 
-// --- Requests --- //
+// --- Requests -- //
 
-/**
- * DTO for creating a new Cart.
- * CORRECTED to exactly match the backend's CartCreateRequestDTO record.
- * It only accepts a list of product IDs, not quantities.
- */
+data class CartItemRequest(
+    @SerializedName("productId") val productId: Long,
+    @SerializedName("quantity") val quantity: Int
+)
+
 data class CartCreateRequest(
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String?,
-    @SerializedName("productIds") val productIds: List<Long>
+    @SerializedName("items") val items: List<CartItemRequest>
 )
 
-/**
- * DTO for updating a Cart.
- * CORRECTED to exactly match the backend's CartUpdateRequestDTO record.
- */
 data class CartUpdateRequest(
     @SerializedName("name") val name: String?,
     @SerializedName("description") val description: String?,
-    @SerializedName("productIds") val productIds: List<Long>?
+    @SerializedName("items") val items: List<CartItemRequest>?
 )
 
 

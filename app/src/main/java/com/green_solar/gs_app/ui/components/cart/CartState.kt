@@ -21,9 +21,16 @@ data class CartState(
     val isCreating: Boolean = false,
     val creationSuccess: Boolean = false,
     val creationError: String? = null,
+    val newlyCreatedCart: Cart? = null,
 
     // For the cart deletion process
     val isDeleting: Boolean = false,
     val deleteSuccess: Boolean = false,
-    val deleteError: String? = null
+    val deleteError: String? = null,
+
+    // For the cart update process
+    val isUpdating: Boolean = false,
+    val updateSuccess: Boolean = false,
+    val updateError: String? = null,
+    val selectedCart: Cart? = null
 )

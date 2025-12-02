@@ -1,15 +1,7 @@
 package com.green_solar.gs_app.ui.screens
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,14 +42,14 @@ import com.green_solar.gs_app.domain.model.Product
 import com.green_solar.gs_app.domain.model.ProductCategory
 import com.green_solar.gs_app.ui.components.cart.CartViewModel
 import com.green_solar.gs_app.ui.components.cart.CartViewModelFactory
-import com.green_solar.gs_app.ui.navigation.Routes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun CreateCotizacionScreen(
+fun EditCotizacionScreen(
     nav: NavController,
+    cotizacionId: Long,
     vm: CartViewModel = viewModel(factory = CartViewModelFactory(LocalContext.current))
 ) {
     val state by vm.state.collectAsState()
@@ -68,36 +60,42 @@ fun CreateCotizacionScreen(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    // State for filters
     var filterName by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<ProductCategory?>(null)
-    }
+    var selectedCategory by remember { mutableStateOf<ProductCategory?>(null) }
     var filtersVisible by remember { mutableStateOf(false) }
 
-    // Trigger search when filters change
-    LaunchedEffect(filterName, selectedCategory) {
-        // A small delay to avoid spamming the API while typing
-        delay(300)
-        vm.searchProducts(filterName.takeIf { it.isNotBlank() }, selectedCategory)
+    LaunchedEffect(cotizacionId) {
+        vm.getCartById(cotizacionId)
     }
 
-    LaunchedEffect(state.creationSuccess) {
-        if (state.creationSuccess) {
-            val newCartId = state.newlyCreatedCart?.id
-            if (newCartId != null) {
-                scope.launch { snackbarHostState.showSnackbar("Cart created successfully!") }
-                nav.navigate("${Routes.Projects}/$newCartId") {
-                    popUpTo(Routes.Main) // Pop back to the main screen, not inclusive
-                }
-                vm.resetCreationStatus()
+    LaunchedEffect(state.selectedCart) {
+        state.selectedCart?.let { cart ->
+            name = cart.name
+            description = cart.description ?: ""
+            productQuantities.clear()
+            cart.cartItems.forEach { item ->
+                productQuantities[item.product.id] = item.quantity
             }
         }
     }
 
-    LaunchedEffect(state.creationError) {
-        state.creationError?.let {
+    LaunchedEffect(filterName, selectedCategory) {
+        delay(300)
+        vm.searchProducts(filterName.takeIf { it.isNotBlank() }, selectedCategory)
+    }
+
+    LaunchedEffect(state.updateSuccess) {
+        if (state.updateSuccess) {
+            scope.launch { snackbarHostState.showSnackbar("Quote updated successfully!") }
+            nav.popBackStack()
+            vm.resetUpdateStatus()
+        }
+    }
+
+    LaunchedEffect(state.updateError) {
+        state.updateError?.let {
             scope.launch { snackbarHostState.showSnackbar("Error: $it") }
-            vm.resetCreationStatus()
+            vm.resetUpdateStatus()
         }
     }
 
@@ -105,7 +103,7 @@ fun CreateCotizacionScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Create New Quote") },
+                title = { Text("Edit Quote") },
                 navigationIcon = {
                     IconButton(onClick = { nav.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -114,26 +112,27 @@ fun CreateCotizacionScreen(
             )
         },
         floatingActionButton = {
-            val isEnabled = !state.isCreating
+            val isEnabled = !state.isUpdating
             ExtendedFloatingActionButton(
                 onClick = {
                     if (!isEnabled) return@ExtendedFloatingActionButton
 
-                    val itemsToCreate = productQuantities.filter { it.value > 0 }
-                    if (itemsToCreate.isEmpty()) {
+                    val itemsToUpdate = productQuantities.filter { it.value > 0 }
+                    if (itemsToUpdate.isEmpty()) {
                         scope.launch {
                             snackbarHostState.showSnackbar("Please select at least one product.")
                         }
                         return@ExtendedFloatingActionButton
                     }
-                    vm.createCart(
-                        name = name.ifBlank { "New Quote" },
+                    vm.updateCart(
+                        cartId = cotizacionId,
+                        name = name.ifBlank { "Updated Quote" },
                         description = description.takeIf { it.isNotBlank() },
-                        items = itemsToCreate
+                        items = itemsToUpdate
                     )
                 },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Create Cart") },
-                text = { Text("Create Cart") },
+                icon = { Icon(Icons.Default.Add, contentDescription = "Update Quote") },
+                text = { Text("Update Quote") },
                 containerColor = if (isEnabled) {
                     FloatingActionButtonDefaults.containerColor
                 } else {
@@ -152,7 +151,6 @@ fun CreateCotizacionScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Name and Description Fields
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -173,7 +171,6 @@ fun CreateCotizacionScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Products Section
             Text(
                 text = "Products",
                 style = MaterialTheme.typography.titleMedium,
@@ -182,7 +179,6 @@ fun CreateCotizacionScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ✅ FIXED FILTERS SECTION — No leftover space when hidden
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -217,7 +213,6 @@ fun CreateCotizacionScreen(
                 }
             }
 
-            // Product List
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
