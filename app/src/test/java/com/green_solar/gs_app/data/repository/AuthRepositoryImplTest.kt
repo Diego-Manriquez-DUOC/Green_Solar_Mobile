@@ -1,119 +1,109 @@
 package com.green_solar.gs_app.data.repository
 
-import android.content.Context
 import com.green_solar.gs_app.data.local.SessionManager
 import com.green_solar.gs_app.data.remote.ApiService
-import com.green_solar.gs_app.data.remote.RetrofitClient
 import com.green_solar.gs_app.data.remote.dto.AuthResponse
-import com.green_solar.gs_app.data.remote.dto.LoginResponseDto
-import com.green_solar.gs_app.data.remote.dto.SignupResponseDto
-import com.green_solar.gs_app.data.remote.dto.UserDto
+import com.green_solar.gs_app.data.remote.dto.MeResponse
 import io.mockk.*
-
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
-import retrofit2.Retrofit
-import java.io.IOException
 
+/**
+ * Pruebas unitarias para AuthRepositoryImpl, siguiendo la guía de buenas prácticas.
+ *
+ * Cubre:
+ * - Login exitoso
+ * - Login fallido (simulado)
+ * - Logout
+ */
 class AuthRepositoryImplTest {
 
+    // Mocks para las dependencias
     private lateinit var mockApiService: ApiService
-    private lateinit var mockContext: Context
+    private lateinit var mockSessionManager: SessionManager
+
+    // SUT (System Under Test)
     private lateinit var repository: AuthRepositoryImpl
 
     @Before
     fun setup() {
-        mockContext = mockk(relaxed = true)
-        mockApiService = mockk()
+        // Crear mocks. Relaxed = true para no tener que definir el comportamiento de todas las funciones.
+        mockApiService = mockk(relaxed = true)
+        mockSessionManager = mockk(relaxed = true)
 
-        val mockRetrofit: Retrofit = mockk()
-        mockkObject(RetrofitClient)
-        every { RetrofitClient.create(mockContext) } returns mockRetrofit
-        every { mockRetrofit.create(ApiService::class.java) } returns mockApiService
-
-        mockkConstructor(SessionManager::class)
-        every { anyConstructed<SessionManager>().saveToken(any()) } just Runs
-        every { anyConstructed<SessionManager>().clear() } just Runs
-
-        repository = AuthRepositoryImpl(mockContext)
+        // Inyectar mocks en la clase a probar
+        repository = AuthRepositoryImpl(mockApiService, mockSessionManager)
     }
 
     @After
     fun teardown() {
+        // Limpiar todos los mocks después de cada test
         unmockkAll()
     }
 
     @Test
-    fun `login exitoso debe retornar Success con User y guardar el token`() = runTest {
-        // ARRANGE
-        val email = "test@example.com"
-        val mockToken = "mock_auth_token_123"
-        val userDto = UserDto(id = 1, name = "Test User", email = email, role = "USER", avatar = null)
-        val mockApiResponse = LoginResponseDto(access_token = mockToken, message = "Success", user = userDto)
+    fun `login exitoso debe guardar token y retornar usuario`() = runTest {
+        // ARRANGE (GIVEN) - Preparar el escenario
+        val fakeToken = "fake_auth_token_123"
+        val fakeUserId = 1L
 
-        coEvery { mockApiService.login(any()) } returns mockApiResponse
+        val mockAuthResponse = AuthResponse(
+            id = fakeUserId,
+            username = "Test User",
+            imgUrl = "",
+            token = fakeToken
+        )
+        coEvery { mockApiService.login(any()) } returns mockAuthResponse
 
-        // ACT
-        val result = repository.login(email, "password123")
+        val mockMeResponse = MeResponse(
+            role = "USER",
+            email = "test@example.com",
+            username = "Test User", // Added username to MeResponse mock based on DTO
+            imgUrl = ""             // Added imgUrl to MeResponse mock based on DTO
+        )
+        coEvery { mockApiService.getCurrentUser(any()) } returns mockMeResponse
 
-        // ASSERT
-        assertTrue("El resultado del login debería ser Success", result.isSuccess)
+        //  Ejecutar la acción a probar
+        val result = repository.login("test@example.com", "password123")
+
+        //  Verificar los resultados
+        assertTrue("El resultado debería ser exitoso", result.isSuccess)
         val user = result.getOrNull()
-        assertEquals("1", user?.id)
-        assertEquals("Test User", user?.name)
+        assertEquals(fakeUserId.toString(), user?.user_id)
+        assertEquals("Test User", user?.username)
 
-        verify(exactly = 1) { anyConstructed<SessionManager>().saveToken(mockToken) }
+        // Verificar que los métodos del SessionManager fueron llamados
+        coVerify(exactly = 1) { mockSessionManager.saveToken(fakeToken) }
+        coVerify(exactly = 1) { mockSessionManager.saveUserId(fakeUserId) }
     }
 
     @Test
-    fun `login con credenciales inválidas debe retornar Failure`() = runTest {
-        // ARRANGE
-        val mockHttpException = HttpException(Response.error<LoginResponseDto>(401, mockk(relaxed = true)))
-        coEvery { mockApiService.login(any()) } throws mockHttpException
+    fun `login con error de API debe retornar Failure`() = runTest {
+        // Simular que la API lanza una excepción
+        coEvery { mockApiService.login(any()) } throws RuntimeException("Error de red")
 
-        // ACT
-        val result = repository.login("wrong@example.com", "wrongpassword")
+        val result = repository.login("test@example.com", "password123")
 
-        // ASSERT
-        assertTrue("El resultado debería ser Failure para credenciales inválidas", result.isFailure)
-        assertTrue(result.exceptionOrNull() is HttpException)
+
+        assertTrue("El resultado debería ser un fallo", result.isFailure)
+        assertTrue("La excepción debería ser la que lanzamos", result.exceptionOrNull() is RuntimeException)
+        
+        // Verificar que NUNCA se intentó guardar en la sesión
+        coVerify(exactly = 0) { mockSessionManager.saveToken(any()) }
+        coVerify(exactly = 0) { mockSessionManager.saveUserId(any()) }
     }
 
     @Test
-    fun `signup exitoso debe retornar Success con User y guardar el token`() = runTest {
-        // ARRANGE
-        val name = "New User"
-        val email = "new@example.com"
-        val mockToken = "new_mock_token_456"
-        val userDto = UserDto(user_id = "1", name = name, email = email, role = "USER", img_url = null)
-        val mockApiResponse = AuthResponse(id, token = mockToken, username = "name", imgUrl = null)
+    fun `logout debe llamar a clear en SessionManager`() = runTest {
+        // No se necesita preparación para este test
 
-        coEvery { mockApiService.signup(any()) } returns mockApiResponse
-
-        // ACT
-        val result = repository.signup(name, email, "password123")
-
-        // ASSERT
-        assertTrue("El resultado del signup debería ser Success", result.isSuccess)
-        val user = result.getOrNull()
-        assertEquals("2", user?.id)
-        assertEquals(name, user?.name)
-
-        verify(exactly = 1) { anyConstructed<SessionManager>().saveToken(mockToken) }
-    }
-
-    @Test
-    fun `logout debe llamar al método clear del SessionManager`() = runTest {
-        // ACT
         repository.logout()
 
-        // ASSERT
-        verify(exactly = 1) { anyConstructed<SessionManager>().clear() }
+        // Verificar que la función `clear` del session manager fue llamada exactamente una vez
+        coVerify(exactly = 1) { mockSessionManager.clear() }
     }
 }

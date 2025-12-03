@@ -1,4 +1,5 @@
 package com.green_solar.gs_app.ui.components.login
+
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,29 +10,33 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val repo: AuthRepository
+    private val repo: AuthRepository,
+    // Inyectable para validar email: por defecto usa Patterns (Android),
+    // en tests puedes pasar { true } o tu propio validador.
+    private val emailValidator: (String) -> Boolean = { Patterns.EMAIL_ADDRESS.matcher(it).matches() }
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(LoginUiState())
     val ui: StateFlow<LoginUiState> = _ui
 
-    fun onEmailChange(v: String)  = _ui.update { it.copy(email = v, emailError = null) }
+    fun onEmailChange(v: String) = _ui.update { it.copy(email = v, emailError = null) }
 
     fun onPasswordChange(v: String) = _ui.update { it.copy(password = v, passwordError = null) }
 
     fun login() {
-        if (!validateLogin()) {
-            return
-        }
+        if (!validateLogin()) return
+
         val (email, password) = _ui.value
+
         _ui.update { it.copy(isLoading = true, error = null, done = false) }
 
         viewModelScope.launch {
             try {
                 repo.login(email, password)
-                    .onSuccess { _ui.update { it.copy(isLoading = false, done = true) } }
+                    .onSuccess {
+                        _ui.update { it.copy(isLoading = false, done = true) }
+                    }
                     .onFailure {
-                        // Esto se ejecuta si el repo maneja el error y devuelve un Result.failure
                         _ui.update {
                             it.copy(
                                 isLoading = false,
@@ -40,7 +45,6 @@ class LoginViewModel(
                         }
                     }
             } catch (e: Exception) {
-                // Esto se ejecuta si la llamamos al repo lanza una excepción (como un HTTP 401)
                 _ui.update {
                     it.copy(
                         isLoading = false,
@@ -56,7 +60,7 @@ class LoginViewModel(
 
         val emailError = when {
             s.email.isBlank() -> "Introduzca su email"
-            !Patterns.EMAIL_ADDRESS.matcher(s.email).matches() -> "El formato del email es inválido"
+            !emailValidator(s.email) -> "El formato del email es inválido"
             else -> null
         }
 
@@ -70,9 +74,10 @@ class LoginViewModel(
         _ui.update {
             it.copy(
                 emailError = emailError,
-                passwordError = passwordError,
+                passwordError = passwordError
             )
         }
+
         return emailError == null && passwordError == null
     }
 }

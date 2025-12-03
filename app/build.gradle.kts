@@ -61,6 +61,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("androidx.compose.material:material-icons-extended")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // --- Corrutinas ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -82,25 +84,34 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation(libs.firebase.annotations)
 
-    // --- Dependencias de Testeo (Configuración corregida por el usuario) ---
+    // --- Dependencias de Testeo ---
 
     // Unit Tests (JVM)
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("app.cash.turbine:turbine:1.0.0")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation(libs.mockk) // MockK para Unit Tests (JVM)
-    testImplementation("io.mockk:mockk-agent-jvm:1.13.10") // ¡¡LA PIEZA CLAVE QUE FALTABA!!
-    testImplementation("com.squareup.retrofit2:retrofit-mock:2.9.0") // (Opcional) Retrofit mock
+    testImplementation("io.mockk:mockk:1.13.10")
+    testImplementation("io.mockk:mockk-agent-jvm:1.13.10")
 
     // Android Instrumentation Tests (Emulator/Device)
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("io.mockk:mockk-android:1.13.10")
+    androidTestImplementation("io.mockk:mockk-agent:1.13.10")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(kotlin("test"))
 }
 
 configurations.all {
     resolutionStrategy {
         force("androidx.navigation:navigation-compose:2.7.7")
+        force("androidx.test.ext:junit:1.2.1")
+        force("androidx.test:core:1.6.1")
+        force("androidx.test.espresso:espresso-core:3.6.1")
     }
 }
