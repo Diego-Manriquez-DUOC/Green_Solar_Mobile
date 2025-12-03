@@ -97,11 +97,15 @@ fun EditCotizacionScreen(
 
                 // Navegamos a la lista de cotizaciones, limpiando el historial hasta la
                 // pantalla "main". Esto fuerza el refresco de la lista.
-                nav.navigate("projects") {
+                nav.navigate("projects")
+                {
+
                     popUpTo("main") {
+
                         inclusive = false
                     }
                 }
+
             }
         }
     }

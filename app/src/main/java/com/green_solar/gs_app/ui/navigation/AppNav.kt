@@ -4,14 +4,12 @@ import android.app.Application
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,10 +24,11 @@ import com.green_solar.gs_app.ui.components.auth.SignupViewModel
 import com.green_solar.gs_app.ui.components.login.LoginViewModel
 import com.green_solar.gs_app.ui.components.profile.ProfileViewModel
 import com.green_solar.gs_app.ui.screens.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object Routes {
-    const val Splash = "splash"
     const val Login = "login"
     const val Profile = "profile"
     const val SignUp = "signup"
@@ -43,102 +42,120 @@ object Routes {
 
 @Composable
 fun AppNav() {
-    val nav = rememberNavController()
     val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-
-    // Create dependencies that can be reused
-    val api = remember { RetrofitClient.create(ctx).create(ApiService::class.java) }
     val session = remember { SessionManager(ctx) }
-    val authRepo = remember { AuthRepositoryImpl(api, session) }
-    val userRepo = remember { UserRepositoryImpl(api, session, ctx) }
 
-    NavHost(
-        navController = nav,
-        startDestination = Routes.Splash
-    ) {
-        composable(Routes.Splash) {
-            LaunchedEffect(Unit) {
-                val dest = if (session.hasToken()) Routes.Main else Routes.Login
-                nav.navigate(dest) {
-                    popUpTo(Routes.Splash) { inclusive = true }
+    var isLoading by remember { mutableStateOf(true) }
+    var startDestination by remember { mutableStateOf(Routes.Login) }
+
+    LaunchedEffect(Unit) {
+        val userHasToken = session.hasToken()
+        withContext(Dispatchers.Main) {
+            if (userHasToken) {
+                startDestination = Routes.Main
+            }
+            isLoading = false
+        }
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        val nav = rememberNavController()
+        val scope = rememberCoroutineScope()
+        val api = remember { RetrofitClient.create(ctx).create(ApiService::class.java) }
+        val authRepo = remember { AuthRepositoryImpl(api, session) }
+        val userRepo = remember { UserRepositoryImpl(api, session, ctx) }
+
+        NavHost(
+            navController = nav,
+            startDestination = startDestination
+        ) {
+            composable(Routes.Login) {
+                val vm: LoginViewModel = viewModel { LoginViewModel(authRepo) }
+                LoginScreen(
+                    vm = vm,
+                    onLoggedIn = {
+                        // CORRECTED: Use the standard and robust navigation pattern for login.
+                        nav.navigate(Routes.Main) {
+                            popUpTo(nav.graph.findStartDestination().id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    onRegisterClick = { nav.navigate(Routes.SignUp) }
+                )
+            }
+
+            composable(Routes.SignUp) {
+                val vm: SignupViewModel = viewModel { SignupViewModel(authRepo) }
+                SignupScreen(
+                    viewModel = vm,
+                    onRegistered = { nav.navigate(Routes.Login) },
+                    onLoginClicked = { nav.popBackStack() }
+                )
+            }
+
+            composable(Routes.Profile) {
+                val app = ctx.applicationContext as Application
+                val vm: ProfileViewModel = viewModel { ProfileViewModel(app, userRepo, authRepo) }
+                ProfileScreen(
+                    viewModel = vm,
+                    nav = nav,
+                )
+            }
+
+            composable(Routes.Main) {
+                val app = ctx.applicationContext as Application
+                val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel(app, userRepo, authRepo) }
+                MainScreen(
+                    nav = nav,
+                    onLogout = {
+                        scope.launch {
+                            profileViewModel.logout()
+                            // CORRECTED: Use the same robust pattern for logout.
+                            nav.navigate(Routes.Login) {
+                                popUpTo(nav.graph.findStartDestination().id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    profileViewModel = profileViewModel
+                )
+            }
+
+            composable("${Routes.Projects}/{newCartId}", arguments = listOf(navArgument("newCartId") { type = NavType.IntType })) {
+                val newCartId = it.arguments?.getInt("newCartId")
+                ProjectsScreen(nav = nav, expandedCartId = newCartId)
+            }
+
+            composable(Routes.Projects) {
+                ProjectsScreen(nav = nav, expandedCartId = null)
+            }
+
+            composable(Routes.Monitoring) {
+                MonitoringScreen(nav = nav)
+            }
+
+            composable(Routes.Quote) {
+                CreateCotizacionScreen(nav = nav)
+            }
+
+            composable("${Routes.EditQuote}/{cotizacionId}", arguments = listOf(navArgument("cotizacionId") { type = NavType.LongType })) {
+                val cotizacionId = it.arguments?.getLong("cotizacionId")
+                cotizacionId?.let {
+                    EditCotizacionScreen(nav = nav, cotizacionId = it)
                 }
             }
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+
+            composable(Routes.ManageProducts) {
+                ManageProductsScreen(nav = nav)
             }
-        }
-
-        composable(Routes.Login) {
-            val vm: LoginViewModel = viewModel { LoginViewModel(authRepo) }
-            LoginScreen(
-                vm = vm,
-                onLoggedIn = {
-                    nav.navigate(Routes.Main) { popUpTo(nav.graph.id) { inclusive = true } }
-                },
-                onRegisterClick = { nav.navigate(Routes.SignUp) }
-            )
-        }
-
-        composable(Routes.SignUp) {
-            val vm: SignupViewModel = viewModel { SignupViewModel(authRepo) }
-            SignupScreen(
-                viewModel = vm,
-                onRegistered = { nav.navigate(Routes.Login) },
-                onLoginClicked = { nav.popBackStack() }
-            )
-        }
-
-        composable(Routes.Profile) {
-            val app = ctx.applicationContext as Application
-            val vm: ProfileViewModel = viewModel { ProfileViewModel(app, userRepo, authRepo) }
-            ProfileScreen(
-                viewModel = vm,
-                nav = nav,
-            )
-        }
-
-        composable(Routes.Main) {
-            val app = ctx.applicationContext as Application
-            val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel(app, userRepo, authRepo) }
-            MainScreen(
-                nav = nav,
-                onLogout = {
-                    scope.launch {
-                        profileViewModel.logout()
-                        nav.navigate(Routes.Login) { popUpTo(nav.graph.id) { inclusive = true } }
-                    }
-                },
-                profileViewModel = profileViewModel
-            )
-        }
-
-        composable("${Routes.Projects}/{newCartId}", arguments = listOf(navArgument("newCartId") { type = NavType.IntType })) {
-            val newCartId = it.arguments?.getInt("newCartId")
-            ProjectsScreen(nav = nav, expandedCartId = newCartId)
-        }
-
-        composable(Routes.Projects) {
-            ProjectsScreen(nav = nav, expandedCartId = null)
-        }
-
-        composable(Routes.Monitoring) {
-             MonitoringScreen(nav = nav)
-        }
-
-        composable(Routes.Quote) {
-            CreateCotizacionScreen(nav = nav)
-        }
-
-        composable("${Routes.EditQuote}/{cotizacionId}", arguments = listOf(navArgument("cotizacionId") { type = NavType.LongType })) {
-            val cotizacionId = it.arguments?.getLong("cotizacionId")
-            cotizacionId?.let {
-                EditCotizacionScreen(nav = nav, cotizacionId = it)
-            }
-        }
-
-        composable(Routes.ManageProducts) {
-             ManageProductsScreen(nav = nav)
         }
     }
 }

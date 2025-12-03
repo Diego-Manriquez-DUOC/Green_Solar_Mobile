@@ -63,7 +63,12 @@ fun ProjectsScreen(
             TopAppBar(
                 title = { Text("My Quotes") },
                 navigationIcon = {
-                    IconButton(onClick = { nav.popBackStack() }) {
+                    IconButton(onClick = { 
+                        // CORRECTED: Use the safe back navigation pattern
+                        if (nav.previousBackStackEntry != null) {
+                            nav.popBackStack()
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
