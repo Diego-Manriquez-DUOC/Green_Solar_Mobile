@@ -19,8 +19,12 @@ class AuthRepositoryImpl(
         val token = authResponse.token
         val meResponse = api.getCurrentUser("Bearer $token")
         val user = mapToDomain(authResponse, meResponse)
+
+        // Guardar toda la información del usuario en la sesión
         session.saveToken(token)
         session.saveUserId(authResponse.id)
+        user.imgUrl?.let { session.saveAvatarUri(it) } // <-- ¡CORRECCIÓN AÑADIDA!
+
         user
     }
 
@@ -29,8 +33,12 @@ class AuthRepositoryImpl(
         val token = authResponse.token
         val meResponse = api.getCurrentUser("Bearer $token")
         val user = mapToDomain(authResponse, meResponse)
+
+        // Guardar toda la información del usuario en la sesión
         session.saveToken(token)
         session.saveUserId(authResponse.id)
+        user.imgUrl?.let { session.saveAvatarUri(it) } // <-- ¡CORRECCIÓN AÑADIDA!
+
         user
     }
 
