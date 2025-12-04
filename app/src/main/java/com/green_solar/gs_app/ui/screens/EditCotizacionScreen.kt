@@ -138,7 +138,7 @@ fun EditCotizacionScreen(
                     val itemsToUpdate = productQuantities.filter { it.value > 0 }
                     if (itemsToUpdate.isEmpty()) {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Please select at least one product.")
+                            snackbarHostState.showSnackbar("Por favor introduzca un producto al menos.")
                         }
                         return@ExtendedFloatingActionButton
                     }
@@ -149,13 +149,13 @@ fun EditCotizacionScreen(
 
                     vm.updateCart(
                         cartId = cotizacionId,
-                        name = name.ifBlank { "Updated Quote" },
+                        name = name.ifBlank { "Cotizacion actualizada" },
                         description = description.takeIf { it.isNotBlank() },
                         items = productIds
                     )
                 },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Update Quote") },
-                text = { Text("Update Quote") },
+                icon = { Icon(Icons.Default.Add, contentDescription = "Actualizar cotizacion") },
+                text = { Text("Actualizar cotizacion") },
                 containerColor = if (isEnabled) {
                     FloatingActionButtonDefaults.containerColor
                 } else {
@@ -227,7 +227,7 @@ fun EditCotizacionScreen(
                     OutlinedTextField(
                         value = filterName,
                         onValueChange = { filterName = it },
-                        label = { Text("Search by name") },
+                        label = { Text("Buscar por nombre") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -278,10 +278,10 @@ private fun CategoryDropdown(
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
-            value = selectedCategory?.name ?: "All Categories",
+            value = selectedCategory?.name ?: "Todas las categorias",
             onValueChange = {}, // readOnly
             readOnly = true,
-            label = { Text("Category") },
+            label = { Text("Categoria") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()
@@ -290,7 +290,7 @@ private fun CategoryDropdown(
 
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
-                text = { Text("All Categories") },
+                text = { Text("Todas las categorias") },
                 onClick = {
                     onCategorySelected(null)
                     expanded = false
@@ -393,11 +393,11 @@ private fun QuantityCounter(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         IconButton(onClick = onDecrement, enabled = quantity > 0, modifier = Modifier.size(28.dp)) {
-            Icon(Icons.Default.Remove, contentDescription = "Decrease quantity")
+            Icon(Icons.Default.Remove, contentDescription = "Bajar cantidad")
         }
         Text(text = quantity.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         IconButton(onClick = onIncrement, modifier = Modifier.size(28.dp)) {
-            Icon(Icons.Default.Add, contentDescription = "Increase quantity")
+            Icon(Icons.Default.Add, contentDescription = "Añadir cantidad")
         }
     }
 }
