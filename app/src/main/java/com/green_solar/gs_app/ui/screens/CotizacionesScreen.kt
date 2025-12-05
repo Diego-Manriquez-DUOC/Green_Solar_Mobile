@@ -47,12 +47,12 @@ fun ProjectsScreen(
 
     LaunchedEffect(state.deleteSuccess, state.deleteError) {
         if (state.deleteSuccess) {
-            scope.launch { snackbarHostState.showSnackbar("Quote deleted successfully!") }
+            scope.launch { snackbarHostState.showSnackbar("Cotizacion borrada!") }
             vm.loadUserCarts()
             vm.resetDeleteStatus()
         }
         state.deleteError?.let {
-            scope.launch { snackbarHostState.showSnackbar("Error deleting quote: $it") }
+            scope.launch { snackbarHostState.showSnackbar("Error borrando la cotizacion: $it") }
             vm.resetDeleteStatus()
         }
     }
@@ -61,7 +61,7 @@ fun ProjectsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("My Quotes") },
+                title = { Text("Mis cotizaciones") },
                 navigationIcon = {
                     IconButton(onClick = { 
                         // CORRECTED: Use the safe back navigation pattern
@@ -177,13 +177,13 @@ private fun ExpandableCartCard(
                     TextButton(onClick = onDeleteClick) {
                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Delete")
+                        Text("Borrar")
                     }
                     Spacer(Modifier.width(8.dp))
                     TextButton(onClick = onEditClick) {
                         Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Edit")
+                        Text("Editar")
                     }
                 }
             }
@@ -215,19 +215,19 @@ private fun CartProductItem(item: CartItem) {
 private fun DeleteConfirmationDialog(cartName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Confirm Deletion") },
-        text = { Text("Are you sure you want to delete the quote \"$cartName\"? This action cannot be undone.") },
+        title = { Text("Confirmar borrado") },
+        text = { Text("Estas seguro que quieres borrar la cotizacion \"$cartName\"? Esta accion no se puede deshacer.") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Text("Delete")
+                Text("Borrar")
             }
         },
         dismissButton = {
             Button(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancelar")
             }
         }
     )

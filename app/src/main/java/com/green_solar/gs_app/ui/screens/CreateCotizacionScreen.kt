@@ -85,7 +85,7 @@ fun CreateCotizacionScreen(
         if (state.creationSuccess) {
             val newCartId = state.newlyCreatedCart?.id
             if (newCartId != null) {
-                scope.launch { snackbarHostState.showSnackbar("Cart created successfully!") }
+                scope.launch { snackbarHostState.showSnackbar("Cotizacion creada correctamente.") }
                 nav.navigate("${Routes.Projects}/$newCartId") {
                     popUpTo(Routes.Main) // Pop back to the main screen, not inclusive
                 }
@@ -105,7 +105,7 @@ fun CreateCotizacionScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Create New Quote") },
+                title = { Text("Crear nueva cotizacion") },
                 navigationIcon = {
                     IconButton(onClick = { 
                         // CORRECTED: Use the safe back navigation pattern
@@ -113,7 +113,7 @@ fun CreateCotizacionScreen(
                             nav.popBackStack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atras")
                     }
                 }
             )
@@ -127,18 +127,18 @@ fun CreateCotizacionScreen(
                     val itemsToCreate = productQuantities.filter { it.value > 0 }
                     if (itemsToCreate.isEmpty()) {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Please select at least one product.")
+                            snackbarHostState.showSnackbar("Por favor introduzca un producto al carrito.")
                         }
                         return@ExtendedFloatingActionButton
                     }
                     vm.createCart(
-                        name = name.ifBlank { "New Quote" },
+                        name = name.ifBlank { "Nueva Cotizacion" },
                         description = description.takeIf { it.isNotBlank() },
                         items = itemsToCreate
                     )
                 },
-                icon = { Icon(Icons.Default.Add, contentDescription = "Create Cart") },
-                text = { Text("Create Cart") },
+                icon = { Icon(Icons.Default.Add, contentDescription = "Crear carrito") },
+                text = { Text("Crear carrito") },
                 containerColor = if (isEnabled) {
                     FloatingActionButtonDefaults.containerColor
                 } else {
@@ -161,7 +161,7 @@ fun CreateCotizacionScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Quote Name") },
+                label = { Text("Nombre de la Cotizacion") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -170,7 +170,7 @@ fun CreateCotizacionScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description (Optional)") },
+                label = { Text("Descripcion") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -180,14 +180,13 @@ fun CreateCotizacionScreen(
 
             // Products Section
             Text(
-                text = "Products",
+                text = "Productos",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ✅ FIXED FILTERS SECTION — No leftover space when hidden
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -213,7 +212,7 @@ fun CreateCotizacionScreen(
                     OutlinedTextField(
                         value = filterName,
                         onValueChange = { filterName = it },
-                        label = { Text("Search by name") },
+                        label = { Text("Buscar por nombre") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -231,7 +230,7 @@ fun CreateCotizacionScreen(
                     CircularProgressIndicator()
                 } else if (state.productsError != null) {
                     Text(
-                        text = "Error loading products: ${state.productsError}",
+                        text = "Error al cargar productos: ${state.productsError}",
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(16.dp)
@@ -265,10 +264,10 @@ private fun CategoryDropdown(
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
-            value = selectedCategory?.name ?: "All Categories",
+            value = selectedCategory?.name ?: "Todas las categorias",
             onValueChange = {}, // readOnly
             readOnly = true,
-            label = { Text("Category") },
+            label = { Text("Categoria") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()
@@ -277,7 +276,7 @@ private fun CategoryDropdown(
 
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
-                text = { Text("All Categories") },
+                text = { Text("Todas las categorias") },
                 onClick = {
                     onCategorySelected(null)
                     expanded = false
@@ -306,7 +305,7 @@ private fun ProductListWithCounter(
 ) {
     if (products.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No products found.", style = MaterialTheme.typography.bodyLarge)
+            Text("No se ha encontrado productos.", style = MaterialTheme.typography.bodyLarge)
         }
     } else {
         Box(
