@@ -52,14 +52,33 @@
 - **Persistencia de Imagen de Perfil:** Aunque la UI no se actualiza al instante (para mantener la lógica simple), la URI de la nueva imagen de perfil se guarda en el `SessionManager` para un uso futuro (ej: subida al servidor).
 
 ## 5. Endpoints
-**Base URL:** `https://greensolarback-production.up.railway.app/`
+**Base URL:** `http://45.236.131.233:22222/`
 
-| Método | Ruta         | Body (Ejemplo)                    | Respuesta (Éxito)                |
-|--------|--------------|-----------------------------------|------------------------------------|
-| POST   | /auth/register | `{ "email", "password", "name" }` | `201` con `{ "access_token": "token", "message": "message", "user": user(email, img_url, name, user_id)}`          |
-| POST   | /auth/login  | `{ "email", "password" }`         | `200` con `{ "access_token": "token", "message": "message", "user": user(email, img_url, name, user_id)}`          |
-| GET    | /me     | - (Requiere header `Authorization: Bearer <token>`) | `200` con `{ "user": user(email, img_url, name, user_id) }` |
-| PUT    | /me/update_pfp     | FormData con campo `image` (archivo) - (Requiere header `Authorization: Bearer <token>`) | `200` con `{ "message": "Profile image updated successfully", "user": user(email, img_url, name, user_id) }` |
+### Auth & User
+| Method | Path | Body                                                                | Response (Success) |
+| --- | --- |---------------------------------------------------------------------| --- |
+| POST | /api/auth/login | `{ "email": "string", "password": "string" }`                       | `200` con `{ "id": "long", "token": "string", "username": "string", "imgUrl": "string" }` |
+| POST | /api/auth/register | `{ "username": "string", "email": "string", "password": "string" }` | `201` con `{ "id": "long", "token": "string", "username": "string", "imgUrl": "string" }` |
+| GET | /api/users/me | (Requires `Authorization` header)                                   | `200` con `{ "username": "string", "role": "string", "email": "string", "imgUrl": "string" }` |
+| PUT | /api/auth/me/update_img | FormData with `image` (Requires `Authorization` header)             | `200` con `{ "username": "string", "role": "string", "email": "string", "imgUrl": "string" }` |
+### Products
+| Method | Path | Body | Response (Success)                          |
+| --- | --- | --- |---------------------------------------------|
+| GET | /api/products | - | `200` con una lista de `ProductResponseDTO` |
+| GET | /api/products/{id} | - | `200` con `ProductResponseDTO`              |
+| GET | /api/products/categories | - | `200` con una lista de `ProductCategory`    |
+| GET | /api/products/search | - | `200` con una lista de `ProductResponseDTO` |
+| POST | /api/products | `{ "name": "string", "desc": "string", "price": "integer", "category": "ProductCategory", "storageKW": "integer", "productionKW": "integer", "imgUrl": "string" }` (Requires `Authorization` header) | `201` con `ProductResponseDTO`              |
+| PUT | /api/products/{id} | `{ "name": "string", "desc": "string", "price": "integer", "category": "ProductCategory", "storageKW": "integer", "productionKW": "integer", "imgUrl": "string" }` (Requires `Authorization` header) | `200` con `ProductResponseDTO`              |
+| DELETE | /api/products/{id} | (Requires `Authorization` header) | `204`                                       |
+### Carts
+| Method | Path | Body | Response (Success)                    |
+| --- | --- | --- |---------------------------------------|
+| GET | /api/carts | (Requires `Authorization` header) | `200` con una lista de `CartResponse` |
+| GET | /api/carts/{cartId} | (Requires `Authorization` header) | `200` con `CartResponse`              |
+| POST | /api/carts | `{ "name": "string", "description": "string", "productIds": ["long"] }` (Requires `Authorization` header) | `201` con `CartResponse`              |
+| PUT | /api/carts/{cartId} | `{ "name": "string", "description": "string", "productIds": ["long"] }` (Requires `Authorization` header) | `200` con `CartResponse`              |
+| DELETE | /api/carts/{cartId} | (Requires `Authorization` header) | `204`                                 |
 
 ## 6. User flows
 
